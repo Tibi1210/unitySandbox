@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: SamplePostProcess Profile
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: 8703428216632053019}
+--- !u!114 &8703428216632053019
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50801c06344704e4484b40082b5f46a6, type: 3}
+  m_Name: SamplePostProcessSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  kernelSize:
+    m_OverrideState: 1
+    m_Value: 101
+--- !u!114 &8734194915912964152
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50801c06344704e4484b40082b5f46a6, type: 3}
+  m_Name: SamplePostProcessSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  kernelSize:
+    m_OverrideState: 1
+    m_Value: 101
