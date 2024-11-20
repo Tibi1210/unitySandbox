@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class computeTextureScript : MonoBehaviour
+public class TerrainScript : MonoBehaviour
 {
 
     public Shader materialShader;
@@ -17,9 +17,12 @@ public class computeTextureScript : MonoBehaviour
     private Vector3[] normals;
     private Material objMaterial;
 
-    private RenderTexture computeResult;
+    public RenderTexture computeResult;
 
     private int threadGroupsX, threadGroupsY, resN;
+
+    [Range(1.0f,100.0f)]
+    public float _Scale;
 
     RenderTexture CreateRenderTex(int width, int height, int depth, RenderTextureFormat format, bool useMips)
     {
@@ -110,14 +113,18 @@ public class computeTextureScript : MonoBehaviour
 
         computeResult = CreateRenderTex(resN, resN, 1, RenderTextureFormat.Default, true);
         computeShader.SetTexture(kernel, "_Result", computeResult);
+        computeShader.SetFloat("_Scale", _Scale);
         computeShader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
+
+        objMaterial.SetTexture("_BaseTex", computeResult);
     }
 
     void Update()
     {
-
+        computeShader.SetTexture(kernel, "_Result", computeResult);
+        computeShader.SetFloat("_Scale", _Scale);
+        computeShader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
         objMaterial.SetTexture("_BaseTex", computeResult);
-
     }
 
     void OnDisable()

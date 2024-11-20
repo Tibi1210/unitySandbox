@@ -1,4 +1,4 @@
-Shader "_Tibi/test/computeTexture"{
+Shader "_Tibi/test/asd"{
 
 	SubShader{
 		Tags{
@@ -41,14 +41,23 @@ Shader "_Tibi/test/computeTexture"{
 				v2f vert(VertexData input){
 					v2f output;
 
-					output.positionCS = TransformObjectToHClip(input.positionOS);
+					VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
+					
+					//float4 positionWS = mul(unity_ObjectToWorld, input.positionOS);
+					float4 positionWS = float4(vertexInput.positionWS,1);
+					
+					float4 displacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
+					positionWS.y = displacement.x;
+
+					output.positionCS = mul(UNITY_MATRIX_VP, positionWS);
 					output.uv = TRANSFORM_TEX(input.uv, _BaseTex);
-					return output;	
+					return output;
+
 				}
 
 				float4 frag(v2f i) : SV_Target{
 					float4 textureSample = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, i.uv, 0, 0);
-					return textureSample;
+					return float4(textureSample.rrr, 1.0);
 				}
 			ENDHLSL
 		}	
