@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: _Tibi_Lighting_PBR
-  m_Shader: {fileID: 4800000, guid: e527a8e2f56cc14498b6554f0a0cce45, type: 3}
+  m_Name: _Tibi_Lighting_PBR_gutted
+  m_Shader: {fileID: 4800000, guid: d369b5a2a5e82514ca616e9ff9844c11, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -29,7 +29,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BaseTex:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 10, y: 10}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionTex:
         m_Texture: {fileID: 0}
@@ -46,10 +46,10 @@ Material:
     m_Ints: []
     m_Floats:
     - _EmissionOn: 0
-    - _MetallicStrength: 1
+    - _MetallicStrength: 0
     - _NormalStrength: 1
     - _Smoothness: 1
     m_Colors:
-    - _BaseColor: {r: 0.6179246, g: 0.9926675, b: 1, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColor: {r: 0.38679248, g: 0.9419255, b: 1, a: 1}
+    - _EmissionColor: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

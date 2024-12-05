@@ -35,8 +35,8 @@ float hash(uint n){
 
 // converts uniform random samples to Gaussian woth Box-Muller Transform
 float2 UniformToGaussian(float u1, float u2){
-    float R = sqrt(-2.0f * log(u1));
-    float theta = 2.0f * PI * u2;
+    float R = sqrt(-2.0 * log(u1));
+    float theta = 2.0 * PI * u2;
     return float2(R * cos(theta), R * sin(theta));
 }
 
@@ -64,7 +64,7 @@ float Dispersion(float kMag){
 float DispersionDerivative(float kMag){
     float th = tanh(min(kMag * _Depth, 20));
     float ch = cosh(kMag * _Depth);
-    return _Gravity * (_Depth * kMag / ch / ch + th) / Dispersion(kMag) / 2.0f;
+    return _Gravity * (_Depth * kMag / ch / ch + th) / Dispersion(kMag) / 2.0;
 }
 
 // normalization factor based on a given spread factor
@@ -72,13 +72,13 @@ float NormalizationFactor(float s){
     float s2 = s * s;
     float s3 = s2 * s;
     float s4 = s3 * s;
-    if (s < 5) return -0.000564f * s4 + 0.00776f * s3 - 0.044f * s2 + 0.192f * s + 0.163f;
-    else return -4.80e-08f * s4 + 1.07e-05f * s3 - 9.53e-04f * s2 + 5.90e-02f * s + 3.93e-01f;
+    if (s < 5) return -0.000564 * s4 + 0.00776 * s3 - 0.044 * s2 + 0.192 * s + 0.163;
+    else return -4.80e-08 * s4 + 1.07e-05 * s3 - 9.53e-04 * s2 + 5.90e-02 * s + 3.93e-01;
 }
 
 // cosine spreading with a given angle and spread factor
 float Cosine2s(float theta, float s){
-	return NormalizationFactor(s) * pow(abs(cos(0.5f * theta)), 2.0f * s);
+	return NormalizationFactor(s) * pow(abs(cos(0.5 * theta)), 2.0 * s);
 }
 
 // power for wave spread based on frequency
@@ -86,26 +86,26 @@ float Cosine2s(float theta, float s){
 // file:///C:/Users/Tibi/Downloads/document.pdf
 float SpreadPower(float frequency, float peakFrequency){
 	if (frequency > peakFrequency)
-		return 9.77f * pow(abs(frequency / peakFrequency), -2.5f);
+		return 9.77 * pow(abs(frequency / peakFrequency), -2.5);
 	else
-		return 6.97f * pow(abs(frequency / peakFrequency), 5.0f);
+		return 6.97 * pow(abs(frequency / peakFrequency), 5.0);
 }
 
 // a directional spreading factor of waves based on angle, frequency, and spectrum parameters
 float DirectionSpectrum(float theta, float frequency, SpectrumParameters spectrum){
 	float s = SpreadPower(frequency, spectrum.peakFrequency) + 16 * tanh(min(frequency / spectrum.peakFrequency, 20)) * spectrum.swell * spectrum.swell;
-	return lerp(2.0f / 3.1415f * cos(theta) * cos(theta), Cosine2s(theta - spectrum.angle, s), spectrum.spreadBlend);
+	return lerp(2.0 / 3.1415 * cos(theta) * cos(theta), Cosine2s(theta - spectrum.angle, s), spectrum.spreadBlend);
 }
 
 // file:///C:/Users/Tibi/Downloads/ADA157975.pdf page 11. 
 float TMACorrection(float frequency){
 	float wH = frequency * sqrt(_Depth / _Gravity);
-	if (wH <= 1.0f)
-		return 0.5f * wH * wH;
-	if (wH < 2.0f)
-		return 1.0f - 0.5f * (2.0f - wH) * (2.0f - wH);
+	if (wH <= 1.0)
+		return 0.5 * wH * wH;
+	if (wH < 2.0)
+		return 1.0 - 0.5 * (2.0 - wH) * (2.0 - wH);
 
-	return 1.0f;
+	return 1.0;
 }
 
 float ShortWavesFade(float kMag, SpectrumParameters spectrum){
@@ -115,9 +115,9 @@ float ShortWavesFade(float kMag, SpectrumParameters spectrum){
 // https://apps.dtic.mil/sti/pdfs/ADA157975.pdf page 5.
 float JONSWAP_TMA(float frequency, SpectrumParameters spectrum){
 
-	float sigma = (frequency <= spectrum.peakFrequency) ? 0.07f : 0.09f;
+	float sigma = (frequency <= spectrum.peakFrequency) ? 0.07 : 0.09;
 
-    float r = exp(-pow(frequency - spectrum.peakFrequency, 2) / (2.0f * pow(sigma, 2) * pow(spectrum.peakFrequency, 2)));
+    float r = exp(-pow(frequency - spectrum.peakFrequency, 2) / (2.0 * pow(sigma, 2) * pow(spectrum.peakFrequency, 2)));
 	
     float frqRcp = rcp(frequency);
     float peakFoverF = spectrum.peakFrequency / frequency;
@@ -126,7 +126,7 @@ float JONSWAP_TMA(float frequency, SpectrumParameters spectrum){
     * spectrum.alpha * (_Gravity * _Gravity)
     * frqRcp * frqRcp * frqRcp * frqRcp * frqRcp 
     * TMACorrection(frequency)
-    * exp(-1.25f * peakFoverF * peakFoverF * peakFoverF * peakFoverF)
+    * exp(-1.25 * peakFoverF * peakFoverF * peakFoverF * peakFoverF)
     * pow(abs(spectrum.gamma), r);
 }
 
@@ -141,8 +141,8 @@ void CS_InitializeSpectrum(uint3 id : SV_DISPATCHTHREADID){
     [unroll]
     for(uint i = 0; i < 4; ++i){
 
-        float halfN = _N / 2.0f;
-        float deltaK = 2.0f * PI / lengthScales[i];
+        float halfN = _N / 2.0;
+        float deltaK = 2.0 * PI / lengthScales[i];
         float2 K = (id.xy - halfN) * deltaK;
         float kMag = length(K);
 
@@ -162,9 +162,9 @@ void CS_InitializeSpectrum(uint3 id : SV_DISPATCHTHREADID){
             if (_Spectrums[i * 2 + 1].scale > 0)
                 spectrum += JONSWAP_TMA(frequency, _Spectrums[i * 2 + 1]) * DirectionSpectrum(kAngle, frequency, _Spectrums[i * 2 + 1]) * ShortWavesFade(kMag, _Spectrums[i * 2 + 1]);
             
-            _InitialSpectrumTextures[uint3(id.xy, i)] = float4(float2(gauss2.x, gauss1.y) * sqrt(2 * spectrum * abs(dFrequencydk) / kMag * deltaK * deltaK), 0.0f, 0.0f);
+            _InitialSpectrumTextures[uint3(id.xy, i)] = float4(float2(gauss2.x, gauss1.y) * sqrt(2 * spectrum * abs(dFrequencydk) / kMag * deltaK * deltaK), 0.0, 0.0);
         } else{
-            _InitialSpectrumTextures[uint3(id.xy, i)] = 0.0f;
+            _InitialSpectrumTextures[uint3(id.xy, i)] = 0.0;
         }
     }
 }
@@ -195,19 +195,19 @@ void CS_UpdateSpectrumForFFT(uint3 id : SV_DISPATCHTHREADID){
         float2 h0conj = initialSignal.zw;
 
         // spatial frequency components
-        float halfN = _N / 2.0f;
-        float deltaK = 2.0f * PI / lengthScales[i];
+        float halfN = _N / 2.0;
+        float deltaK = 2.0 * PI / lengthScales[i];
         // wave vector, representing the direction and frequency of each wave
         float2 K = (id.xy - halfN) * deltaK;
         float kMag = length(K);
         float kMagRcp = rcp(kMag);
 
-        if (kMag < 0.0001f){
-            kMagRcp = 1.0f;
+        if (kMag < 0.0001){
+            kMagRcp = 1.0;
         }
 
         // base frequency
-        float w_0 = 2.0f * PI / _RepeatTime;
+        float w_0 = 2.0 * PI / _RepeatTime;
         // phase speed of the wave, determining how fast each wave oscillates
         float dispersion = floor(sqrt(_Gravity * kMag) / w_0) * w_0 * _FrameTime;
         float2 exponent = EulerFormula(dispersion);
@@ -300,7 +300,7 @@ void CS_VerticalFFT(uint3 id : SV_DISPATCHTHREADID){
 }
 
 float4 Permute(float4 data, float3 id){
-    return data * (1.0f - 2.0f * ((id.x + id.y) % 2));
+    return data * (1.0 - 2.0 * ((id.x + id.y) % 2));
 }
 
 // calculates the final wave displacements, slopes, and foam based on the processed wave spectrum
@@ -327,7 +327,7 @@ void CS_AssembleMaps(uint3 id : SV_DISPATCHTHREADID){
         foam *= exp(-_FoamDecayRate);
         foam = saturate(foam);
 
-        float biasedJacobian = max(0.0f, -(jacobian - _FoamBias));
+        float biasedJacobian = max(0.0, -(jacobian - _FoamBias));
 
         if (biasedJacobian > _FoamThreshold)
             foam += _FoamAdd * biasedJacobian;

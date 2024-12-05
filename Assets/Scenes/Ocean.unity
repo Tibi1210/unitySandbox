@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.17954585, g: 0.21947914, b: 0.27559668, a: 1}
+  m_IndirectSpecularColor: {r: 0.16519934, g: 0.19391626, b: 0.22098657, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -253,13 +253,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 393894012}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0.76, y: 8.9, z: 2.9}
+  m_LocalRotation: {x: 0.15014422, y: -0, z: -0, w: 0.9886641}
+  m_LocalPosition: {x: 41.9, y: 40.5, z: -88.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 17.271, y: 0, z: 0}
 --- !u!21 &521621577
 Material:
   serializedVersion: 8
@@ -268,7 +268,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Custom/FFTWater
-  m_Shader: {fileID: 4800000, guid: 257a9fbe263983342aa4e9aa8dd668a3, type: 3}
+  m_Shader: {fileID: 4800000, guid: c20c50f49e3052746be2b6bc887f1f88, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -282,11 +282,243 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _AOTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _MetallicStrength: 1
+    - _Smoothness: 0
     m_Colors: []
   m_BuildTextureStacks: []
+--- !u!1 &560661471
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 560661475}
+  - component: {fileID: 560661474}
+  - component: {fileID: 560661473}
+  - component: {fileID: 560661472}
+  m_Layer: 0
+  m_Name: water_PBR
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &560661472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560661471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e56de993a636d6b41af1adcf65fbc5b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waterShader: {fileID: 4800000, guid: c20c50f49e3052746be2b6bc887f1f88, type: 3}
+  computeShader: {fileID: 7200000, guid: 26984fe9f11cc4f4b80e9a59bf3c06d8, type: 3}
+  seed: 1
+  lowCutoff: 0.0001
+  highCutoff: 9000
+  gravity: 9.81
+  depth: 20
+  repeatTime: 200
+  speed: 1
+  lambda: {x: 1, y: 1}
+  displacementDepthFalloff: 1
+  updateSpectrum: 1
+  lengthScale1: 128
+  tile0: 0.01
+  debugTile0: 0
+  visualizeLayer0: 1
+  contributeDisplacement0: 1
+  spectrum1:
+    scale: 1
+    windSpeed: 1
+    windDirection: 70
+    fetch: 100000
+    spreadBlend: 1
+    swell: 1
+    peakEnhancement: 1
+    shortWavesFade: 0.1
+  spectrum2:
+    scale: 0.79
+    windSpeed: 1
+    windDirection: 70
+    fetch: 10000
+    spreadBlend: 0.5
+    swell: 1
+    peakEnhancement: 1
+    shortWavesFade: 0.01
+  lengthScale2: 64
+  tile1: 0.01
+  debugTile1: 0
+  visualizeLayer1: 1
+  contributeDisplacement1: 1
+  spectrum3:
+    scale: 1.6
+    windSpeed: 10
+    windDirection: 90
+    fetch: 100000
+    spreadBlend: 1
+    swell: 0
+    peakEnhancement: 7
+    shortWavesFade: 0.1
+  spectrum4:
+    scale: 1
+    windSpeed: 10
+    windDirection: 120
+    fetch: 100000
+    spreadBlend: 0.1
+    swell: 0.8
+    peakEnhancement: 7
+    shortWavesFade: 0.01
+  lengthScale3: 32
+  tile2: 0.01
+  debugTile2: 0
+  visualizeLayer2: 1
+  contributeDisplacement2: 1
+  spectrum5:
+    scale: 0.1
+    windSpeed: 1
+    windDirection: 165
+    fetch: 100000
+    spreadBlend: 1
+    swell: 1
+    peakEnhancement: 7
+    shortWavesFade: 0
+  spectrum6:
+    scale: 0.4
+    windSpeed: 1
+    windDirection: 1
+    fetch: 100
+    spreadBlend: 1
+    swell: 0
+    peakEnhancement: 1
+    shortWavesFade: 0.01
+  lengthScale4: 32
+  tile3: 0.01
+  debugTile3: 0
+  visualizeLayer3: 1
+  contributeDisplacement3: 1
+  spectrum7:
+    scale: 1
+    windSpeed: 1
+    windDirection: 22
+    fetch: 100000
+    spreadBlend: 0.63
+    swell: 0.8
+    peakEnhancement: 1
+    shortWavesFade: 0.001
+  spectrum8:
+    scale: 0.23
+    windSpeed: 1
+    windDirection: 22
+    fetch: 1000
+    spreadBlend: 0.43
+    swell: 0.057
+    peakEnhancement: 1
+    shortWavesFade: 0.0001
+  normalStrength: 1
+  albedo: {r: 0.019607844, g: 0.25490198, b: 0.44313726, a: 1}
+  tipColor: {r: 1, g: 1, b: 1, a: 0}
+  smoothness: 0.5
+  metalic: 0
+  foamBias: 0.2
+  foamThreshold: 0
+  foamAdd: 0.5
+  foamDecayRate: 0.228
+  foamDepthFalloff: 3
+  foamSubtract1: 0.4
+  foamSubtract2: -0.4
+  foamSubtract3: -0.5
+  foamSubtract4: -0.2
+  displacementTextures: {fileID: 0}
+  slopeTextures: {fileID: 0}
+  initialSpectrumTextures: {fileID: 0}
+  spectrumTextures: {fileID: 0}
+--- !u!23 &560661473
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560661471}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 521621577}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &560661474
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560661471}
+  m_Mesh: {fileID: 0}
+--- !u!4 &560661475
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560661471}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1937.0308, y: 0, z: 463}
+  m_LocalScale: {x: 37.850307, y: 37.850307, z: 37.850307}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1093089837
 GameObject:
   m_ObjectHideFlags: 0
@@ -375,13 +607,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1093089837}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.003886944, y: -0.7800848, z: 0.1688324, w: 0.6024519}
+  m_LocalRotation: {x: -0.08930243, y: -0.9683078, z: 0.084396906, w: 0.2174451}
   m_LocalPosition: {x: 0, y: 15.1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 15.551, y: -103.023, z: 11.821}
+  m_LocalEulerAnglesHint: {x: 7.158, y: -153.921, z: 12.198}
 --- !u!114 &1093089840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -483,8 +715,8 @@ Transform:
   m_GameObject: {fileID: 1235837688}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 10, y: 1, z: 10}
+  m_LocalPosition: {x: -1848, y: 0, z: 463}
+  m_LocalScale: {x: 37.850307, y: 37.850307, z: 37.850307}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -571,7 +803,7 @@ MonoBehaviour:
     fetch: 100000
     spreadBlend: 1
     swell: 1
-    peakEnhancement: 10
+    peakEnhancement: 7
     shortWavesFade: 0
   spectrum6:
     scale: 0.4
@@ -636,4 +868,5 @@ SceneRoots:
   m_Roots:
   - {fileID: 1093089839}
   - {fileID: 1235837692}
+  - {fileID: 560661475}
   - {fileID: 393894016}
