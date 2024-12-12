@@ -20,7 +20,7 @@ Shader "_Tibi/Terrain_LOD" {
 			#pragma domain tessDomain
 			#pragma fragment frag
 
-			#define EDGE_LEN 10
+			#define EDGE_LEN 5
 			#define PI 3.14159265358979323846
 
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -74,6 +74,7 @@ Shader "_Tibi/Terrain_LOD" {
 
 			CBUFFER_START(UnityPerMaterial)
 				float4 _BaseTex_ST;
+				float _HeightScale;
 			CBUFFER_END
 
 			TessellationControlPoint vert(VertexData input) {
@@ -92,8 +93,12 @@ Shader "_Tibi/Terrain_LOD" {
 				//float4 positionWS = mul(unity_ObjectToWorld, input.positionOS);
 				float4 positionWS = float4(vertexInput.positionWS,1);
 				
-				float4 displacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
-				positionWS.y = displacement.x;
+				float4 displacement1 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
+				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
+				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
+				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
+				float4 displacement = displacement1 + displacement2 + displacement3 + displacement4;
+				positionWS.y = displacement.x * _HeightScale;
 
 				output.positionWS = positionWS;
 				output.positionCS = mul(UNITY_MATRIX_VP, positionWS);
@@ -142,8 +147,13 @@ Shader "_Tibi/Terrain_LOD" {
             }
 
 			float4 frag(v2f input) : SV_TARGET {
-				float4 textureSample = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
-				return float4(textureSample.rrr, 1.0);
+				float4 displacement1 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
+				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
+				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
+				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
+				float4 displacement = displacement1 + displacement2 + displacement3 + displacement4;
+				float colorG = lerp(0.0, 0.2, displacement.r);
+				return float4(0.0, colorG, 0.0, 1.0);
 			}
 
 			ENDHLSL

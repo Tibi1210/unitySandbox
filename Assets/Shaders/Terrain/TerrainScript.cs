@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class TerrainScript : MonoBehaviour
 {
 
@@ -19,10 +19,11 @@ public class TerrainScript : MonoBehaviour
 
     public RenderTexture computeResult;
 
-    private int threadGroupsX, threadGroupsY, resN;
+    private int GRID_DIM, resN;
 
+    public Vector4 _Scale = new Vector4(1.0f,1.0f,1.0f,1.0f);
     [Range(1.0f,100.0f)]
-    public float _Scale;
+    public float _HeightScale;
 
     RenderTexture CreateRenderTex(int width, int height, int depth, RenderTextureFormat format, bool useMips)
     {
@@ -43,6 +44,7 @@ public class TerrainScript : MonoBehaviour
     private void CreatePlaneMesh()
     {
         mesh = GetComponent<MeshFilter>().mesh = new Mesh();
+
         mesh.name = "mesh";
 
         float halfLength = planeSize * 0.5f;
@@ -97,24 +99,29 @@ public class TerrainScript : MonoBehaviour
         MeshRenderer renderer = GetComponent<MeshRenderer>();
 
         renderer.material = objMaterial;
+        
     }
-
+    int getGridDimFor(int kernelIdx){
+        computeShader.GetKernelThreadGroupSizes(kernelIdx, out uint BLOCK_DIM, out _, out _);
+        return (int)((resN + (BLOCK_DIM - 1)) / BLOCK_DIM);
+    }
 
     void Start()
     {
         CreatePlaneMesh();
         CreateMaterial();
+        GetComponent<MeshCollider>().sharedMesh = mesh;
 
         kernel = computeShader.FindKernel("CSMain");
 
-        resN = 1024;
-        threadGroupsX = Mathf.CeilToInt(resN / 8.0f);
-        threadGroupsY = Mathf.CeilToInt(resN / 8.0f);
+        resN = 2048;
 
-        computeResult = CreateRenderTex(resN, resN, 1, RenderTextureFormat.Default, true);
+        GRID_DIM = getGridDimFor(kernel);
+
+        computeResult = CreateRenderTex(resN, resN, 4, RenderTextureFormat.Default, true);
         computeShader.SetTexture(kernel, "_Result", computeResult);
-        computeShader.SetFloat("_Scale", _Scale);
-        computeShader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
+        computeShader.SetVector("_Scale", _Scale);
+        computeShader.Dispatch(kernel, GRID_DIM, GRID_DIM, 1);
 
         objMaterial.SetTexture("_BaseTex", computeResult);
     }
@@ -122,9 +129,10 @@ public class TerrainScript : MonoBehaviour
     void Update()
     {
         computeShader.SetTexture(kernel, "_Result", computeResult);
-        computeShader.SetFloat("_Scale", _Scale);
-        computeShader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
+        computeShader.SetVector("_Scale", _Scale);
+        computeShader.Dispatch(kernel, GRID_DIM, GRID_DIM, 1);
         objMaterial.SetTexture("_BaseTex", computeResult);
+        objMaterial.SetFloat("_HeightScale", _HeightScale);
     }
 
     void OnDisable()

@@ -862,7 +862,7 @@ MonoBehaviour:
   sheenTint: 1
   clearCoat: 1
   clearCoatGloss: 1
-  foamBias: 0.17
+  foamBias: 0.01
   foamThreshold: 0
   foamAdd: 1
   foamDecayRate: 0.1

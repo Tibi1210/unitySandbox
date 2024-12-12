@@ -1,7 +1,7 @@
 #pragma kernel CSMain
 
 RWTexture2DArray<float4> _Result;
-float _Scale;
+float4 _Scale;
 
 // 0: integer hash
 // 1: float hash (aliasing based)
@@ -126,13 +126,20 @@ float4 fbm( in float3 x, int octaves )
 }
 
 
-[numthreads(8,8,1)]
+[numthreads(32,32,1)]
 void CSMain (uint3 id : SV_DispatchThreadID){
 
-    float2 uv = float2(id.x / 1024.0, id.y / 1024.0);
-    float4 color = noised(float3(uv.xy*_Scale, 0.0));
+    float2 uv = float2(id.x / 2048.0, id.y / 2048.0);
+    float4 layer1 = noised(float3(uv.xy*_Scale[0], 0.0));
+    float4 layer2 = noised(float3(uv.xy*_Scale[1], 1.0));
+    float4 layer3 = noised(float3(uv.xy*_Scale[2], 2.0));
+    float4 layer4 = noised(float3(uv.xy*_Scale[3], 3.0));
     //float4 color = fbm(float3(uv.xy*_Scale, 0.0),8);
     
-    _Result[uint3(id.xy, 0)] = color;
+
+    _Result[uint3(id.xy, 0)] = layer1;
+    _Result[uint3(id.xy, 1)] = layer2;
+    _Result[uint3(id.xy, 2)] = layer3;
+    _Result[uint3(id.xy, 3)] = layer4;
     
 }
