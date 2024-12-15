@@ -154,17 +154,17 @@ PrefabInstance:
     - target: {fileID: 2609659046390027144, guid: 1d4e01ccb7177ba4aad48678aac1f51b,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.2594349
+      value: 1.26
       objectReference: {fileID: 0}
     - target: {fileID: 2609659046390027144, guid: 1d4e01ccb7177ba4aad48678aac1f51b,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 6.0700006
+      value: 386.9
       objectReference: {fileID: 0}
     - target: {fileID: 2609659046390027144, guid: 1d4e01ccb7177ba4aad48678aac1f51b,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.8005615
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 2609659046390027144, guid: 1d4e01ccb7177ba4aad48678aac1f51b,
         type: 3}
@@ -208,6 +208,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7408720162870431293, guid: 1d4e01ccb7177ba4aad48678aac1f51b,
         type: 3}
+      propertyPath: far clip plane
+      value: 10000
+      objectReference: {fileID: 0}
+    - target: {fileID: 7408720162870431293, guid: 1d4e01ccb7177ba4aad48678aac1f51b,
+        type: 3}
       propertyPath: m_BackGroundColor.a
       value: 1
       objectReference: {fileID: 0}
@@ -248,8 +253,8 @@ GameObject:
   - component: {fileID: 742870148}
   - component: {fileID: 742870147}
   - component: {fileID: 742870146}
-  - component: {fileID: 742870145}
   - component: {fileID: 742870149}
+  - component: {fileID: 742870145}
   m_Layer: 0
   m_Name: terrain
   m_TagString: Untagged
@@ -272,8 +277,8 @@ MonoBehaviour:
   materialShader: {fileID: 4800000, guid: 8bbcb05a32d30a7498c544bcbe260d2e, type: 3}
   computeShader: {fileID: 7200000, guid: 5e274958a5e72cb40a90ef5046a0e7c9, type: 3}
   computeResult: {fileID: 0}
-  _Scale: {x: 0.19, y: 0, z: 0, w: 0}
-  _HeightScale: 0
+  _Scale: {x: 3.04, y: 14.75, z: 11.76, w: 1.96}
+  _HeightScale: 54.1
 --- !u!23 &742870146
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -334,7 +339,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 10, y: 1, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -504,7 +509,7 @@ Transform:
   m_GameObject: {fileID: 1122759750}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5, z: 0}
+  m_LocalPosition: {x: 0, y: 385.91, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -610,7 +615,7 @@ Transform:
   m_GameObject: {fileID: 1456466533}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.63, y: 6.27, z: -2.61}
+  m_LocalPosition: {x: 4.84, y: 387.12, z: -1.53}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

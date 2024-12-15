@@ -20,7 +20,7 @@ Shader "_Tibi/Terrain_LOD" {
 			#pragma domain tessDomain
 			#pragma fragment frag
 
-			#define EDGE_LEN 5
+			#define EDGE_LEN 8
 			#define PI 3.14159265358979323846
 
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -97,8 +97,11 @@ Shader "_Tibi/Terrain_LOD" {
 				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
 				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
 				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
-				float4 displacement = displacement1 + displacement2 + displacement3 + displacement4;
-				positionWS.y = displacement.x * _HeightScale;
+				float displacement = displacement1.x 
+								   + displacement2.x 
+								   + displacement3.x
+								   + displacement4.x;
+				positionWS.y = displacement * _HeightScale; 
 
 				output.positionWS = positionWS;
 				output.positionCS = mul(UNITY_MATRIX_VP, positionWS);
@@ -151,9 +154,13 @@ Shader "_Tibi/Terrain_LOD" {
 				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
 				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
 				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
-				float4 displacement = displacement1 + displacement2 + displacement3 + displacement4;
-				float colorG = lerp(0.0, 0.2, displacement.r);
-				return float4(0.0, colorG, 0.0, 1.0);
+				float displacement = displacement1.x 
+								   + displacement2.x 
+								   + displacement3.x
+								   + displacement4.x;
+				
+				float color = lerp(0.0, 1.0, displacement);
+				return float4(color, color, color, 1.0);
 			}
 
 			ENDHLSL
