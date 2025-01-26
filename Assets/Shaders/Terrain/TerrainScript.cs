@@ -23,7 +23,15 @@ public class TerrainScript : MonoBehaviour
 
     public Vector4 _Scale = new Vector4(1.0f,1.0f,1.0f,1.0f);
     [Range(1.0f,100.0f)]
-    public float _HeightScale;
+    public float _HeightScale; 
+    [Range(0.01f,1.0f)]
+    public float _Amplitude;
+    [Range(1,20)]
+    public int _Octaves;
+    [Range(0, 100000)]
+    public int _Seed = 0;
+    public Vector4 _Scale2 = new Vector4(1.0f,1.0f,1.0f,1.0f);
+ 
 
     RenderTexture CreateRenderTex(int width, int height, int depth, RenderTextureFormat format, bool useMips)
     {
@@ -118,21 +126,31 @@ public class TerrainScript : MonoBehaviour
 
         GRID_DIM = getGridDimFor(kernel);
 
+
         computeResult = CreateRenderTex(resN, resN, 4, RenderTextureFormat.Default, true);
         computeShader.SetTexture(kernel, "_Result", computeResult);
         computeShader.SetVector("_Scale", _Scale);
+        computeShader.SetFloat("_Amplitude", _Amplitude);
+        computeShader.SetInt("_Octaves", _Octaves);
+        computeShader.SetInt("_Seed", _Seed);
         computeShader.Dispatch(kernel, GRID_DIM, GRID_DIM, 1);
 
         objMaterial.SetTexture("_BaseTex", computeResult);
+        objMaterial.SetFloat("_HeightScale", _HeightScale);
+        objMaterial.SetVector("_Scale2", _Scale2);
     }
 
     void Update()
     {
         computeShader.SetTexture(kernel, "_Result", computeResult);
         computeShader.SetVector("_Scale", _Scale);
+        computeShader.SetFloat("_Amplitude", _Amplitude);
+        computeShader.SetInt("_Octaves", _Octaves);
+        computeShader.SetInt("_Seed", _Seed);
         computeShader.Dispatch(kernel, GRID_DIM, GRID_DIM, 1);
         objMaterial.SetTexture("_BaseTex", computeResult);
         objMaterial.SetFloat("_HeightScale", _HeightScale);
+        objMaterial.SetVector("_Scale2", _Scale2);
     }
 
     void OnDisable()

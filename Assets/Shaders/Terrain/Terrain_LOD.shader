@@ -74,6 +74,7 @@ Shader "_Tibi/Terrain_LOD" {
 
 			CBUFFER_START(UnityPerMaterial)
 				float4 _BaseTex_ST;
+				float4 _Scale2;
 				float _HeightScale;
 			CBUFFER_END
 
@@ -97,11 +98,11 @@ Shader "_Tibi/Terrain_LOD" {
 				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
 				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
 				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
-				float displacement = displacement1.x 
-								   + displacement2.x 
-								   + displacement3.x
-								   + displacement4.x;
-				positionWS.y = displacement * _HeightScale; 
+				float displacement = displacement1.x * _Scale2[0]
+								   + displacement2.x * _Scale2[1]
+								   + displacement3.x * _Scale2[2]
+								   + displacement4.x * _Scale2[3];
+				positionWS.y = displacement; 
 
 				output.positionWS = positionWS;
 				output.positionCS = mul(UNITY_MATRIX_VP, positionWS);
@@ -119,16 +120,16 @@ Shader "_Tibi/Terrain_LOD" {
 
                 TessellationFactors factors;
                 float bias = -0.5 * 100;
-                if (cullTriangle(p0, p1, p2, bias)) {
-                    factors.edge[0] = factors.edge[1] = factors.edge[2] = factors.inside = 0;
-                } else {
+                //if (cullTriangle(p0, p1, p2, bias)) {
+                //    factors.edge[0] = factors.edge[1] = factors.edge[2] = factors.inside = 0;
+                //} else {
                     factors.edge[0] = TessellationHeuristic(p1, p2);
                     factors.edge[1] = TessellationHeuristic(p2, p0);
                     factors.edge[2] = TessellationHeuristic(p0, p1);
                     factors.inside = (TessellationHeuristic(p1, p2) +
                                 TessellationHeuristic(p2, p0) +
                                 TessellationHeuristic(p1, p2)) * (1 / 3.0);
-                }
+                //}
                 return factors;
             }
 
@@ -154,13 +155,12 @@ Shader "_Tibi/Terrain_LOD" {
 				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
 				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
 				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
-				float displacement = displacement1.x 
-								   + displacement2.x 
-								   + displacement3.x
-								   + displacement4.x;
+				float displacement = displacement1.x * _Scale2[0]
+								   + displacement2.x * _Scale2[1]
+								   + displacement3.x * _Scale2[2]
+								   + displacement4.x * _Scale2[3];
 				
-				float color = lerp(0.0, 1.0, displacement);
-				return float4(color, color, color, 1.0);
+				return float4(lerp(0.0,1.0,displacement/100), lerp(0.0,1.0,displacement/100), lerp(0.0,1.0,displacement/100), 1.0);
 			}
 
 			ENDHLSL

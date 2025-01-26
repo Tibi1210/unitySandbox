@@ -82,8 +82,7 @@ float Cosine2s(float theta, float s){
 }
 
 // power for wave spread based on frequency
-// file:///C:/Users/Tibi/Downloads/A_Real-Time_Method_for_Ocean_Surface_Simulation_us.pdf
-// file:///C:/Users/Tibi/Downloads/document.pdf
+// A_Real-Time_Method_for_Ocean_Surface_Simulation_us.pdf
 float SpreadPower(float frequency, float peakFrequency){
 	if (frequency > peakFrequency)
 		return 9.77 * pow(abs(frequency / peakFrequency), -2.5);
@@ -97,7 +96,7 @@ float DirectionSpectrum(float theta, float frequency, SpectrumParameters spectru
 	return lerp(2.0 / 3.1415 * cos(theta) * cos(theta), Cosine2s(theta - spectrum.angle, s), spectrum.spreadBlend);
 }
 
-// file:///C:/Users/Tibi/Downloads/ADA157975.pdf page 11. 
+// https://apps.dtic.mil/sti/pdfs/ADA157975.pdf page 11. 
 float TMACorrection(float frequency){
 	float wH = frequency * sqrt(_Depth / _Gravity);
 	if (wH <= 1.0)
