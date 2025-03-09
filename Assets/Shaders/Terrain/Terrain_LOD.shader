@@ -74,8 +74,6 @@ Shader "_Tibi/Terrain_LOD" {
 
 			CBUFFER_START(UnityPerMaterial)
 				float4 _BaseTex_ST;
-				float4 _Scale2;
-				float _HeightScale;
 			CBUFFER_END
 
 			TessellationControlPoint vert(VertexData input) {
@@ -94,15 +92,8 @@ Shader "_Tibi/Terrain_LOD" {
 				//float4 positionWS = mul(unity_ObjectToWorld, input.positionOS);
 				float4 positionWS = float4(vertexInput.positionWS,1);
 				
-				float4 displacement1 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
-				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
-				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
-				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
-				float displacement = displacement1.x * _Scale2[0]
-								   + displacement2.x * _Scale2[1]
-								   + displacement3.x * _Scale2[2]
-								   + displacement4.x * _Scale2[3];
-				positionWS.y = displacement; 
+				float4 displacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
+				positionWS.y = displacement.x * 100; 
 
 				output.positionWS = positionWS;
 				output.positionCS = mul(UNITY_MATRIX_VP, positionWS);
@@ -151,16 +142,21 @@ Shader "_Tibi/Terrain_LOD" {
             }
 
 			float4 frag(v2f input) : SV_TARGET {
-				float4 displacement1 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
-				float4 displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
-				float4 displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 2, 0);
-				float4 displacement4 = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 3, 0);
-				float displacement = displacement1.x * _Scale2[0]
-								   + displacement2.x * _Scale2[1]
-								   + displacement3.x * _Scale2[2]
-								   + displacement4.x * _Scale2[3];
+
+				float _MinY = 0; 
+				float _MaxY = 50;
 				
-				return float4(lerp(0.0,1.0,displacement/100), lerp(0.0,1.0,displacement/100), lerp(0.0,1.0,displacement/100), 1.0);
+				float normalizedY = saturate((input.positionWS.y - _MinY) / (_MaxY - _MinY));
+				float4 Green = float4(0.0, 1.0, 0.0, 1.0);
+				float4 Blue = float4(0.0, 0.0, 1.0, 1.0);
+				float4 gradientColor = lerp(Blue, Green, normalizedY);
+
+				
+
+				float4 displacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
+				
+				return gradientColor;
+					
 			}
 
 			ENDHLSL

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -8,7 +10,7 @@ public class TerrainScript : MonoBehaviour
 
     public Shader materialShader;
     public ComputeShader computeShader;
-    private int kernel;
+    private int FractalNoiseCS;
 
     //plane
     private int planeSize = 100;
@@ -17,20 +19,54 @@ public class TerrainScript : MonoBehaviour
     private Vector3[] normals;
     private Material objMaterial;
 
-    public RenderTexture computeResult;
+    private RenderTexture computeResult;
 
     private int GRID_DIM, resN;
 
-    public Vector4 _Scale = new Vector4(1.0f,1.0f,1.0f,1.0f);
-    [Range(1.0f,100.0f)]
-    public float _HeightScale; 
-    [Range(0.01f,1.0f)]
-    public float _Amplitude;
-    [Range(1,20)]
-    public int _Octaves;
-    [Range(0, 100000)]
-    public int _Seed = 0;
-    public Vector4 _Scale2 = new Vector4(1.0f,1.0f,1.0f,1.0f);
+    public struct OctaveParams{
+        public float frequency;
+        public float amplitude;
+        public float lacunarity;
+        public float persistence;
+    }
+    const int OctaveCount = 4;
+    OctaveParams[] octaves = new OctaveParams[OctaveCount];
+
+    [System.Serializable]
+    public struct UI_OctaveParams{
+        public float frequency;
+        public float amplitude;
+        public float lacunarity;
+        public float persistence;
+    }
+
+    public bool updateOctave = false;
+    public float baseFrequency = 1;
+    [SerializeField]
+    public UI_OctaveParams octave1;
+    [SerializeField]
+    public UI_OctaveParams octave2;
+    [SerializeField]
+    public UI_OctaveParams octave3;
+    [SerializeField]
+    public UI_OctaveParams octave4;
+
+    private ComputeBuffer octaveBuffer;
+
+    void FillOctaveStruct(UI_OctaveParams displaySettings, ref OctaveParams computeSettings){
+        computeSettings.frequency = displaySettings.frequency;
+        computeSettings.amplitude = displaySettings.amplitude;
+        computeSettings.lacunarity = displaySettings.lacunarity;
+        computeSettings.persistence = displaySettings.persistence;
+    }
+    void SetSOctaveBuffers(){
+        FillOctaveStruct(octave1, ref octaves[0]);
+        FillOctaveStruct(octave2, ref octaves[1]);
+        FillOctaveStruct(octave3, ref octaves[2]);
+        FillOctaveStruct(octave4, ref octaves[3]);
+        octaveBuffer.SetData(octaves);
+        computeShader.SetBuffer(FractalNoiseCS, "_Octaves", octaveBuffer);
+    }
  
 
     RenderTexture CreateRenderTex(int width, int height, int depth, RenderTextureFormat format, bool useMips)
@@ -116,41 +152,41 @@ public class TerrainScript : MonoBehaviour
 
     void Start()
     {
+
+        FractalNoiseCS = computeShader.FindKernel("FractalNoiseCS");
+
+        resN = 2048;
+
+        GRID_DIM = getGridDimFor(FractalNoiseCS);
+
+        computeResult = CreateRenderTex(resN, resN, 1, RenderTextureFormat.Default, true);
+        octaveBuffer = new ComputeBuffer(4, 4 * sizeof(float));
+
+        SetSOctaveBuffers();
+  
+        computeShader.SetTexture(FractalNoiseCS, "_Result", computeResult);
+        computeShader.SetInt("_OctaveCount", OctaveCount);
+        computeShader.SetFloat("_BaseFrequency", baseFrequency);
+        computeShader.Dispatch(FractalNoiseCS, GRID_DIM, GRID_DIM, 1);
+
         CreatePlaneMesh();
         CreateMaterial();
         GetComponent<MeshCollider>().sharedMesh = mesh;
 
-        kernel = computeShader.FindKernel("CSMain");
-
-        resN = 2048;
-
-        GRID_DIM = getGridDimFor(kernel);
-
-
-        computeResult = CreateRenderTex(resN, resN, 4, RenderTextureFormat.Default, true);
-        computeShader.SetTexture(kernel, "_Result", computeResult);
-        computeShader.SetVector("_Scale", _Scale);
-        computeShader.SetFloat("_Amplitude", _Amplitude);
-        computeShader.SetInt("_Octaves", _Octaves);
-        computeShader.SetInt("_Seed", _Seed);
-        computeShader.Dispatch(kernel, GRID_DIM, GRID_DIM, 1);
 
         objMaterial.SetTexture("_BaseTex", computeResult);
-        objMaterial.SetFloat("_HeightScale", _HeightScale);
-        objMaterial.SetVector("_Scale2", _Scale2);
-    }
 
+    }
+    
     void Update()
     {
-        computeShader.SetTexture(kernel, "_Result", computeResult);
-        computeShader.SetVector("_Scale", _Scale);
-        computeShader.SetFloat("_Amplitude", _Amplitude);
-        computeShader.SetInt("_Octaves", _Octaves);
-        computeShader.SetInt("_Seed", _Seed);
-        computeShader.Dispatch(kernel, GRID_DIM, GRID_DIM, 1);
-        objMaterial.SetTexture("_BaseTex", computeResult);
-        objMaterial.SetFloat("_HeightScale", _HeightScale);
-        objMaterial.SetVector("_Scale2", _Scale2);
+        if(updateOctave){
+            SetSOctaveBuffers();
+
+            computeShader.SetTexture(FractalNoiseCS, "_Result", computeResult);
+            computeShader.SetFloat("_BaseFrequency", baseFrequency);
+            computeShader.Dispatch(FractalNoiseCS, GRID_DIM, GRID_DIM, 1);
+        }
     }
 
     void OnDisable()
@@ -170,5 +206,6 @@ public class TerrainScript : MonoBehaviour
         }
 
         Destroy(computeResult);
+        octaveBuffer.Dispose();
     }
 }
