@@ -12,7 +12,6 @@ struct OctaveParams {
 };
 StructuredBuffer<OctaveParams> _Octaves;
 
-
 uint FNV32(uint x, uint y, uint z) {
     const uint FNV_PRIME = 16777619;
     uint hash = 2166136261;
@@ -43,20 +42,20 @@ NoiseOutput PerlinWithDerivatives(float3 p) {
     
     // Gradient contributions from 8 corners
     float3 grads[8];
-    for(int i=0; i<8; i++) {
-        uint3 offset = uint3(i&1, (i>>1)&1, (i>>2)&1);
+    for (int i = 0; i < 8; i++) {
+        uint3 offset = uint3(i & 1, (i >> 1) & 1, (i >> 2) & 1);
         grads[i] = HashGradient(pi + offset);
     }    
     
     // Dot products and interpolation
-    float a = dot(grads[0], pf - float3(0,0,0));
-    float b = dot(grads[1], pf - float3(1,0,0));
-    float c = dot(grads[2], pf - float3(0,1,0));
-    float d = dot(grads[3], pf - float3(1,1,0));
-    float e = dot(grads[4], pf - float3(0,0,1));
-    float f = dot(grads[5], pf - float3(1,0,1));
-    float g = dot(grads[6], pf - float3(0,1,1));
-    float h = dot(grads[7], pf - float3(1,1,1));
+    float a = dot(grads[0], pf - float3(0, 0, 0));
+    float b = dot(grads[1], pf - float3(1, 0, 0));
+    float c = dot(grads[2], pf - float3(0, 1, 0));
+    float d = dot(grads[3], pf - float3(1, 1, 0));
+    float e = dot(grads[4], pf - float3(0, 0, 1));
+    float f = dot(grads[5], pf - float3(1, 0, 1));
+    float g = dot(grads[6], pf - float3(0, 1, 1));
+    float h = dot(grads[7], pf - float3(1, 1, 1));
     
     // x-direction interpolation
     float ab = lerp(a, b, t.x);
@@ -68,30 +67,27 @@ NoiseOutput PerlinWithDerivatives(float3 p) {
     NoiseOutput output;
     output.value = lerp(lerp(ab, cd, t.y), lerp(ef, gh, t.y), t.z);
     
-    float3 dtdx = dt * float3(1,0,0);
-    float3 dtdy = dt * float3(0,1,0);
-    float3 dtdz = dt * float3(0,0,1);
+    float3 dtdx = dt * float3(1, 0, 0);
+    float3 dtdy = dt * float3(0, 1, 0);
+    float3 dtdz = dt * float3(0, 0, 1);
     
     // Derivative chain rule application
-    output.derivative = (grads[0] * (1-t.x) + grads[1] * t.x) * dtdx  
-                      + (grads[2] * (1-t.x) + grads[3] * t.x) * dtdy  
-                      + (grads[4] * (1-t.x) + grads[5] * t.x) * dtdz;
+    output.derivative = (grads[0] * (1 - t.x) + grads[1] * t.x) * dtdx  
+                      + (grads[2] * (1 - t.x) + grads[3] * t.x) * dtdy  
+                      + (grads[4] * (1 - t.x) + grads[5] * t.x) * dtdz;
     return output;                  
 }    
 
-
-[numthreads(8,8,1)]
-void FractalNoiseCS (uint3 id : SV_DispatchThreadID) {
-
-
-    float2 uv = (id.xy + 0.5) / float2(2048.0,2048.0);
+[numthreads(8, 8, 1)]
+void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
+    float2 uv = (id.xy + 0.5) / float2(2048.0, 2048.0);
 
     float total = 0;
     float3 derivative = 0;
     float amplitude = 1.0;
     float frequency = _BaseFrequency;
     
-    for(int i=0; i<_OctaveCount; i++) {
+    for (int i = 0; i < _OctaveCount; i++) {
         frequency += _Octaves[i].frequency;
         amplitude += _Octaves[i].amplitude;
         NoiseOutput noise = PerlinWithDerivatives(float3(uv, 0.0) * frequency);
@@ -104,4 +100,3 @@ void FractalNoiseCS (uint3 id : SV_DispatchThreadID) {
     
     _Result[uint3(id.xy, 0)] = float4(total, derivative);
 }
-

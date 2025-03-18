@@ -129,8 +129,8 @@ MonoBehaviour:
     renderPassEvent: 400
     color: {r: 1, g: 1, b: 1, a: 1}
     alpha: 1
-    BoundsMin: {x: -1000, y: 500, z: -1000}
-    BoundsMax: {x: 1000, y: 550, z: 1000}
+    BoundsMin: {x: -1000, y: 200, z: -1000}
+    BoundsMax: {x: 1000, y: 250, z: 1000}
     RenderDistance: 1000
   cloudSettings:
     Steps: 15

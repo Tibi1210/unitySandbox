@@ -26,130 +26,87 @@ public class FFTWater_PBR : MonoBehaviour{
     }
     SpectrumSettings[] spectrums = new SpectrumSettings[8];
 
-    [System.Serializable]
+    [Serializable]
     public struct UI_SpectrumSettings{
-        [Range(0, 5)]
-        public float scale;
+        [Range(0, 5)] public float scale;
         public float windSpeed;
-        [Range(0.0f, 360.0f)]
-        public float windDirection;
+        [Range(0.0f, 360.0f)] public float windDirection;
         public float fetch;
-        [Range(0, 1)]
-        public float spreadBlend;
-        [Range(0.01f, 1)]
-        public float swell;
-        [Range(0.001f, 7.0f)]
-        public float peakEnhancement;
+        [Range(0, 1)] public float spreadBlend;
+        [Range(0.01f, 1)] public float swell;
+        [Range(0.001f, 7.0f)] public float peakEnhancement;
         public float shortWavesFade;
     }
 
     [Header("Spectrum Settings")]
-    [Range(0, 100000)]
-    public int seed = 0;
-    [Range(0.0f, 0.1f)]
-    public float lowCutoff = 0.0001f;
-    [Range(0.1f, 9000.0f)]
-    public float highCutoff = 9000.0f;
-    [Range(0.0f, 20.0f)]
-    public float gravity = 9.81f;
-    [Range(2.0f, 20.0f)]
-    public float depth = 20.0f;
-    [Range(0.0f, 200.0f)]
-    public float repeatTime = 200.0f;
-    [Range(0.0f, 5.0f)]
-    public float speed = 1.0f;
+    [Range(0, 100000)] public int seed = 0;
+    [Range(0.0f, 0.1f)] public float lowCutoff = 0.0001f;
+    [Range(0.1f, 9000.0f)] public float highCutoff = 9000.0f;
+    [Range(0.0f, 20.0f)] public float gravity = 9.81f;
+    [Range(2.0f, 20.0f)] public float depth = 20.0f;
+    [Range(0.0f, 200.0f)] public float repeatTime = 200.0f;
+    [Range(0.0f, 5.0f)] public float speed = 1.0f;
     public Vector2 lambda = new Vector2(1.0f, 1.0f);
-    [Range(0.0f, 10.0f)]
-    public float displacementDepthFalloff = 1.0f;
+    [Range(0.0f, 10.0f)] public float displacementDepthFalloff = 1.0f;
     public bool updateSpectrum = false;
 
 
     [Header("Layer One")]
-    [Range(0, 2048)]
-    public int lengthScale1 = 256;
-    [Range(0.01f, 3.0f)]
-    public float tile0 = 8.0f;
+    [Range(0, 2048)] public int lengthScale1 = 256;
+    [Range(0.01f, 3.0f)] public float tile0 = 8.0f;
     public bool debugTile0 = false;
     public bool visualizeLayer0 = false;
     public bool contributeDisplacement0 = false;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum1;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum2;
+    [SerializeField] public UI_SpectrumSettings spectrum1;
+    [SerializeField] public UI_SpectrumSettings spectrum2;
 
     [Header("Layer Two")]
-    [Range(0, 2048)]
-    public int lengthScale2 = 256;
-    [Range(0.01f, 3.0f)]
-    public float tile1 = 8.0f;
+    [Range(0, 2048)] public int lengthScale2 = 256;
+    [Range(0.01f, 3.0f)] public float tile1 = 8.0f;
     public bool debugTile1 = false;
     public bool visualizeLayer1 = false;
     public bool contributeDisplacement1 = false;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum3;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum4;
+    [SerializeField] public UI_SpectrumSettings spectrum3;
+    [SerializeField] public UI_SpectrumSettings spectrum4;
 
     [Header("Layer Three")]
-    [Range(0, 2048)]
-    public int lengthScale3 = 256;
-    [Range(0.01f, 3.0f)]
-    public float tile2 = 8.0f;
+    [Range(0, 2048)] public int lengthScale3 = 256;
+    [Range(0.01f, 3.0f)] public float tile2 = 8.0f;
     public bool debugTile2 = false;
     public bool visualizeLayer2 = false;
     public bool contributeDisplacement2 = false;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum5;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum6;
+    [SerializeField] public UI_SpectrumSettings spectrum5;
+    [SerializeField] public UI_SpectrumSettings spectrum6;
 
     [Header("Layer Four")]
-    [Range(0, 2048)]
-    public int lengthScale4 = 256;
-    [Range(0.01f, 3.0f)]
-    public float tile3 = 8.0f;
+    [Range(0, 2048)] public int lengthScale4 = 256;
+    [Range(0.01f, 3.0f)] public float tile3 = 8.0f;
     public bool debugTile3 = false;
     public bool visualizeLayer3 = false;
     public bool contributeDisplacement3 = false;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum7;
-    [SerializeField]
-    public UI_SpectrumSettings spectrum8;
+    [SerializeField] public UI_SpectrumSettings spectrum7;
+    [SerializeField] public UI_SpectrumSettings spectrum8;
 
 
     [Header("Normal Settings")]
-    [Range(0.0f, 20.0f)]
-    public float normalStrength = 1;
+    [Range(0.0f, 20.0f)] public float normalStrength = 1;
 
     [Header("Material Settings")]
-    [ColorUsageAttribute(false, true)]
-    public Color albedo;
-    [ColorUsageAttribute(false, true)]
-    public Color tipColor;
-    [Range(0.0f, 1.0f)]
-    public float metalic = 0.5f;
-    [Range(0.0f, 1.0f)]
-    public float smoothness = 1.0f;
+    [ColorUsageAttribute(false, true)] public Color albedo;
+    [ColorUsageAttribute(false, true)] public Color tipColor;
+    [Range(0.0f, 1.0f)] public float metalic = 0.5f;
+    [Range(0.0f, 1.0f)] public float smoothness = 1.0f;
 
     [Header("Foam Settings")]
-    [Range(-2.0f, 2.0f)]
-    public float foamBias = -0.5f;
-    [Range(-10.0f, 10.0f)]
-    public float foamThreshold = 0.0f;
-    [Range(0.0f, 1.0f)]
-    public float foamAdd = 0.5f;
-    [Range(0.0f, 1.0f)]
-    public float foamDecayRate = 0.05f;
-    [Range(0.0f, 10.0f)]
-    public float foamDepthFalloff = 1.0f;
-    [Range(-2.0f, 2.0f)]
-    public float foamSubtract1 = 0.0f;
-    [Range(-2.0f, 2.0f)]
-    public float foamSubtract2 = 0.0f;
-    [Range(-2.0f, 2.0f)]
-    public float foamSubtract3 = 0.0f;
-    [Range(-2.0f, 2.0f)]
-    public float foamSubtract4 = 0.0f;
+    [Range(-2.0f, 2.0f)] public float foamBias = -0.5f;
+    [Range(-10.0f, 10.0f)] public float foamThreshold = 0.0f;
+    [Range(0.0f, 1.0f)] public float foamAdd = 0.5f;
+    [Range(0.0f, 1.0f)] public float foamDecayRate = 0.05f;
+    [Range(0.0f, 10.0f)] public float foamDepthFalloff = 1.0f;
+    [Range(-2.0f, 2.0f)] public float foamSubtract1 = 0.0f;
+    [Range(-2.0f, 2.0f)] public float foamSubtract2 = 0.0f;
+    [Range(-2.0f, 2.0f)] public float foamSubtract3 = 0.0f;
+    [Range(-2.0f, 2.0f)] public float foamSubtract4 = 0.0f;
 
     public RenderTexture displacementTextures,
                           slopeTextures,
@@ -183,7 +140,8 @@ public class FFTWater_PBR : MonoBehaviour{
 
         for (int i = 0, x = 0; x <= sideVertCount; ++x){
             for (int z = 0; z <= sideVertCount; ++z, ++i){
-                vertices[i] = new Vector3(((float)x / sideVertCount * planeLength) - halfLength, 0, ((float)z / sideVertCount * planeLength) - halfLength);
+                vertices[i] = new Vector3(((float)x / sideVertCount * planeLength) - halfLength, 0,
+                                          ((float)z / sideVertCount * planeLength) - halfLength);
                 uv[i] = new Vector2((float)x / sideVertCount, (float)z / sideVertCount);
                 tangents[i] = tangent;
             }
@@ -197,7 +155,7 @@ public class FFTWater_PBR : MonoBehaviour{
 
         for (int ti = 0, vi = 0, x = 0; x < sideVertCount; ++vi, ++x){
             for (int z = 0; z < sideVertCount; ti += 6, ++vi, ++z){
-                triangles[ti] = vi;
+                triangles[ti + 0] = vi;
                 triangles[ti + 1] = vi + 1;
                 triangles[ti + 2] = vi + sideVertCount + 2;
                 triangles[ti + 3] = vi;
