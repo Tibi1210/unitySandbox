@@ -13,28 +13,54 @@ Shader "Custom/FFTWater_BRDF"{
             #define _TessellationEdgeLength 10
             #define PI 3.14159265358979323846
 
+            /**
+             * @brief Checks if a triangle is completely below a specific camera clip plane
+             * @param p0 First vertex position in world space
+             * @param p1 Second vertex position in world space
+             * @param p2 Third vertex position in world space
+             * @param planeIndex Index of the clip plane to check against (0-5)
+             * @param bias Bias value to adjust the culling threshold
+             * @return True if the triangle is completely below the specified clip plane
+             */
             bool TriangleIsBelowClipPlane(float3 p0, float3 p1, float3 p2, int planeIndex, float bias){
                 float4 plane = unity_CameraWorldClipPlanes[planeIndex];
-                return dot(float4(p0, 1), plane) < bias && dot(float4(p1, 1), plane) < bias && dot(float4(p2, 1), plane) < bias;
+                return dot(float4(p0, 1), plane) < 
+                       bias && dot(float4(p1, 1), plane) < 
+                       bias && dot(float4(p2, 1), plane) < 
+                       bias;
             }
 
+            /**
+             * @brief Performs frustum culling for a triangle
+             * @param p0 First vertex position in world space
+             * @param p1 Second vertex position in world space
+             * @param p2 Third vertex position in world space
+             * @param bias Bias value to adjust the culling threshold
+             * @return True if the triangle should be culled (outside frustum)
+             */
             bool cullTriangle(float3 p0, float3 p1, float3 p2, float bias){
                 return TriangleIsBelowClipPlane(p0, p1, p2, 0, bias) ||
-                    TriangleIsBelowClipPlane(p0, p1, p2, 1, bias) ||
-                    TriangleIsBelowClipPlane(p0, p1, p2, 2, bias) ||
-                    TriangleIsBelowClipPlane(p0, p1, p2, 3, bias);
+                       TriangleIsBelowClipPlane(p0, p1, p2, 1, bias) ||
+                       TriangleIsBelowClipPlane(p0, p1, p2, 2, bias) ||
+                       TriangleIsBelowClipPlane(p0, p1, p2, 3, bias);
             }
 
             half DotClamped(half3 a, half3 b){
                 return saturate(dot(a, b));
             }
 
+            /**
+             * @brief Calculates tessellation factor based on edge length and view distance
+             * @param cp0 First control point in world space
+             * @param cp1 Second control point in world space
+             * @return Tessellation factor for the edge between cp0 and cp1
+             */
             float TessellationHeuristic(float3 cp0, float3 cp1){
-                    float edgeLength = distance(cp0, cp1);
-                    float3 edgeCenter = (cp0 + cp1) * 0.5;
-                    float viewDistance = distance(edgeCenter, _WorldSpaceCameraPos);
+                float edgeLength = distance(cp0, cp1);
+                float3 edgeCenter = (cp0 + cp1) * 0.5;
+                float viewDistance = distance(edgeCenter, _WorldSpaceCameraPos);
 
-                    return edgeLength * _ScreenParams.y / (_TessellationEdgeLength * (pow(viewDistance * 0.5, 1.2)));
+                return edgeLength * _ScreenParams.y / (_TessellationEdgeLength * (pow(viewDistance * 0.5, 1.2)));
             }
         ENDHLSL
 
@@ -98,6 +124,11 @@ Shader "Custom/FFTWater_BRDF"{
                     float inside : SV_INSIDETESSFACTOR;
                 };
 
+                /**
+                * @brief Vertex shader function for tessellation
+                * @param input Vertex input data
+                * @return Tessellation control point
+                */
                 TessellationControlPoint vert(VertexData input){
                     TessellationControlPoint output;
                     output.positionOS = input.positionOS;
@@ -105,6 +136,11 @@ Shader "Custom/FFTWater_BRDF"{
                     return output;
                 }
 
+                /**
+                * @brief Processes vertex data after tessellation
+                * @param input Vertex input data
+                * @return Processed vertex data with displacement applied
+                */
                 v2f tessVert(VertexData input){
                     v2f output;
                     input.uv = 0;
@@ -112,8 +148,6 @@ Shader "Custom/FFTWater_BRDF"{
                     output.positionWS = vertexInput.positionWS;
 
                     float3 displacement1, displacement2, displacement3, displacement4 = float3(0.0f,0.0f,0.0f);
-
-
                     displacement1 = SAMPLE_TEXTURE2D_ARRAY_LOD(_DisplacementTextures, sampler_DisplacementTextures, float2(output.positionWS.xz * _Tile0), 0, 0) * _VisualizeLayer0 * _ContributeDisplacement0;
                     displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_DisplacementTextures, sampler_DisplacementTextures, float2(output.positionWS.xz * _Tile1), 1, 0) * _VisualizeLayer1 * _ContributeDisplacement1;
                     displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_DisplacementTextures, sampler_DisplacementTextures, float2(output.positionWS.xz * _Tile2), 2, 0) * _VisualizeLayer2 * _ContributeDisplacement2;
@@ -135,6 +169,11 @@ Shader "Custom/FFTWater_BRDF"{
                     return output;
                 }
 
+                /**
+                * @brief Calculates tessellation factors for a patch
+                * @param patch Input patch of control points
+                * @return Tessellation factors for the patch
+                */
                 TessellationFactors PatchFunction(InputPatch<TessellationControlPoint, 3> patch){
                     VertexPositionInputs p0_input = GetVertexPositionInputs(patch[0].positionOS);
                     VertexPositionInputs p1_input = GetVertexPositionInputs(patch[1].positionOS);
@@ -159,6 +198,12 @@ Shader "Custom/FFTWater_BRDF"{
                     return factors;
                 }
 
+                /**
+                * @brief Hull shader for tessellation
+                * @param patch Input patch of control points
+                * @param id Control point ID
+                * @return Control point for the specified ID
+                */
                 [domain("tri")]
                 [outputcontrolpoints(3)]
                 [outputtopology("triangle_cw")]
@@ -168,6 +213,13 @@ Shader "Custom/FFTWater_BRDF"{
                     return patch[id];
                 }
 
+                /**
+                * @brief Domain shader for tessellation
+                * @param factors Tessellation factors
+                * @param patch Output patch of control points
+                * @param bcCoords Barycentric coordinates
+                * @return Processed vertex data for the tessellated point
+                */
                 [domain("tri")]
                 v2f tessDomain(TessellationFactors factors, OutputPatch<TessellationControlPoint, 3> patch, float3 bcCoords : SV_DOMAINLOCATION){
                     VertexData data;
@@ -295,6 +347,11 @@ Shader "Custom/FFTWater_BRDF"{
                     return output;
                 }
 
+                /**
+                * @brief Fragment shader function
+                * @param input Fragment input data
+                * @return Final color for the fragment
+                */
                 float4 frag(v2f input) : SV_TARGET{
 
                     float4 displacementFoam1 = SAMPLE_TEXTURE2D_ARRAY(_DisplacementTextures,sampler_DisplacementTextures, float2(input.uv * _Tile0), 0) * _VisualizeLayer0;

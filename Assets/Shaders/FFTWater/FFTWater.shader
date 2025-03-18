@@ -13,6 +13,15 @@ Shader "Custom/FFTWater"{
             #define _TessellationEdgeLength 10
             #define PI 3.14159265358979323846
 
+            /**
+             * @brief Checks if a triangle is completely below a specific camera clip plane
+             * @param p0 First vertex position in world space
+             * @param p1 Second vertex position in world space
+             * @param p2 Third vertex position in world space
+             * @param planeIndex Index of the clip plane to check against (0-5)
+             * @param bias Bias value to adjust the culling threshold
+             * @return True if the triangle is completely below the specified clip plane
+             */
             bool TriangleIsBelowClipPlane(float3 p0, float3 p1, float3 p2, int planeIndex, float bias){
                 float4 plane = unity_CameraWorldClipPlanes[planeIndex];
                 return dot(float4(p0, 1), plane) < 
@@ -21,6 +30,14 @@ Shader "Custom/FFTWater"{
                        bias;
             }
 
+            /**
+             * @brief Performs frustum culling for a triangle
+             * @param p0 First vertex position in world space
+             * @param p1 Second vertex position in world space
+             * @param p2 Third vertex position in world space
+             * @param bias Bias value to adjust the culling threshold
+             * @return True if the triangle should be culled (outside frustum)
+             */
             bool cullTriangle(float3 p0, float3 p1, float3 p2, float bias){
                 return TriangleIsBelowClipPlane(p0, p1, p2, 0, bias) ||
                        TriangleIsBelowClipPlane(p0, p1, p2, 1, bias) ||
@@ -32,12 +49,18 @@ Shader "Custom/FFTWater"{
                 return saturate(dot(a, b));
             }
 
+            /**
+             * @brief Calculates tessellation factor based on edge length and view distance
+             * @param cp0 First control point in world space
+             * @param cp1 Second control point in world space
+             * @return Tessellation factor for the edge between cp0 and cp1
+             */
             float TessellationHeuristic(float3 cp0, float3 cp1){
-                    float edgeLength = distance(cp0, cp1);
-                    float3 edgeCenter = (cp0 + cp1) * 0.5;
-                    float viewDistance = distance(edgeCenter, _WorldSpaceCameraPos);
+                float edgeLength = distance(cp0, cp1);
+                float3 edgeCenter = (cp0 + cp1) * 0.5;
+                float viewDistance = distance(edgeCenter, _WorldSpaceCameraPos);
 
-                    return edgeLength * _ScreenParams.y / (_TessellationEdgeLength * (pow(viewDistance * 0.5, 1.2)));
+                return edgeLength * _ScreenParams.y / (_TessellationEdgeLength * (pow(viewDistance * 0.5, 1.2)));
             }
         ENDHLSL
 
@@ -77,44 +100,52 @@ Shader "Custom/FFTWater"{
                     float _FoamSubtract0, _FoamSubtract1, _FoamSubtract2, _FoamSubtract3;
                 CBUFFER_END
 
-                struct VertexData {
+                struct VertexData{
                     float4 positionOS : POSITION;
                     float2 uv : TEXCOORD0;
                 };
 
-                struct v2f {
+                struct v2f{
                     float4 positionCS : SV_POSITION;
                     float2 uv : TEXCOORD0;
                     float3 positionWS : TEXCOORD1;
                     float depth : TEXCOORD2;
                 };
 
-                struct TessellationControlPoint {
+                struct TessellationControlPoint{
                     float4 positionOS : INTERNALTESSPOS;
                     float2 uv : TEXCOORD0;
                 };
 
-                struct TessellationFactors {
+                struct TessellationFactors{
                     float edge[3] : SV_TESSFACTOR;
                     float inside : SV_INSIDETESSFACTOR;
                 };
 
-                TessellationControlPoint vert(VertexData input) {
+                /**
+                * @brief Vertex shader function for tessellation
+                * @param input Vertex input data
+                * @return Tessellation control point
+                */
+                TessellationControlPoint vert(VertexData input){
                     TessellationControlPoint output;
                     output.positionOS = input.positionOS;
                     output.uv = input.uv;
                     return output;
                 }
 
-                v2f tessVert(VertexData input) {
+                /**
+                * @brief Processes vertex data after tessellation
+                * @param input Vertex input data
+                * @return Processed vertex data with displacement applied
+                */
+                v2f tessVert(VertexData input){
                     v2f output;
                     input.uv = 0;
                     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                     output.positionWS = vertexInput.positionWS;
 
                     float3 displacement1, displacement2, displacement3, displacement4 = float3(0.0f,0.0f,0.0f);
-
-
                     displacement1 = SAMPLE_TEXTURE2D_ARRAY_LOD(_DisplacementTextures, sampler_DisplacementTextures, float2(output.positionWS.xz * _Tile0), 0, 0) * _VisualizeLayer0 * _ContributeDisplacement0;
                     displacement2 = SAMPLE_TEXTURE2D_ARRAY_LOD(_DisplacementTextures, sampler_DisplacementTextures, float2(output.positionWS.xz * _Tile1), 1, 0) * _VisualizeLayer1 * _ContributeDisplacement1;
                     displacement3 = SAMPLE_TEXTURE2D_ARRAY_LOD(_DisplacementTextures, sampler_DisplacementTextures, float2(output.positionWS.xz * _Tile2), 2, 0) * _VisualizeLayer2 * _ContributeDisplacement2;
@@ -136,7 +167,12 @@ Shader "Custom/FFTWater"{
                     return output;
                 }
 
-                TessellationFactors PatchFunction(InputPatch<TessellationControlPoint, 3> patch) {
+                /**
+                * @brief Calculates tessellation factors for a patch
+                * @param patch Input patch of control points
+                * @return Tessellation factors for the patch
+                */
+                TessellationFactors PatchFunction(InputPatch<TessellationControlPoint, 3> patch){
                     VertexPositionInputs p0_input = GetVertexPositionInputs(patch[0].positionOS);
                     VertexPositionInputs p1_input = GetVertexPositionInputs(patch[1].positionOS);
                     VertexPositionInputs p2_input = GetVertexPositionInputs(patch[2].positionOS);
@@ -146,9 +182,9 @@ Shader "Custom/FFTWater"{
 
                     TessellationFactors factors;
                     float bias = -0.5 * 100;
-                    if (cullTriangle(p0, p1, p2, bias)) {
+                    if (cullTriangle(p0, p1, p2, bias)){
                         factors.edge[0] = factors.edge[1] = factors.edge[2] = factors.inside = 0;
-                    } else {
+                    } else{
                         factors.edge[0] = TessellationHeuristic(p1, p2);
                         factors.edge[1] = TessellationHeuristic(p2, p0);
                         factors.edge[2] = TessellationHeuristic(p0, p1);
@@ -160,17 +196,30 @@ Shader "Custom/FFTWater"{
                     return factors;
                 }
 
+                /**
+                * @brief Hull shader for tessellation
+                * @param patch Input patch of control points
+                * @param id Control point ID
+                * @return Control point for the specified ID
+                */
                 [domain("tri")]
                 [outputcontrolpoints(3)]
                 [outputtopology("triangle_cw")]
                 [partitioning("integer")]
                 [patchconstantfunc("PatchFunction")]
-                TessellationControlPoint tessHull(InputPatch<TessellationControlPoint, 3> patch, uint id : SV_OutputControlPointID) {
+                TessellationControlPoint tessHull(InputPatch<TessellationControlPoint, 3> patch, uint id : SV_OutputControlPointID){
                     return patch[id];
                 }
 
+                /**
+                * @brief Domain shader for tessellation
+                * @param factors Tessellation factors
+                * @param patch Output patch of control points
+                * @param bcCoords Barycentric coordinates
+                * @return Processed vertex data for the tessellated point
+                */
                 [domain("tri")]
-                v2f tessDomain(TessellationFactors factors, OutputPatch<TessellationControlPoint, 3> patch, float3 bcCoords : SV_DOMAINLOCATION) {
+                v2f tessDomain(TessellationFactors factors, OutputPatch<TessellationControlPoint, 3> patch, float3 bcCoords : SV_DOMAINLOCATION){
                     VertexData data;
                     data.positionOS = patch[0].positionOS * bcCoords.x + patch[1].positionOS * bcCoords.y + patch[2].positionOS * bcCoords.z;
                     data.uv = patch[0].uv * bcCoords.x + patch[1].uv * bcCoords.y + patch[2].uv * bcCoords.z;
@@ -208,7 +257,12 @@ Shader "Custom/FFTWater"{
                     return _Ambient + diffuse + specular + fresnel;
                 }
 
-                float4 frag(v2f input) : SV_TARGET {
+                /**
+                * @brief Fragment shader function
+                * @param input Fragment input data
+                * @return Final color for the fragment
+                */
+                float4 frag(v2f input) : SV_TARGET{
 
                     float4 displacementFoam1 = SAMPLE_TEXTURE2D_ARRAY(_DisplacementTextures,sampler_DisplacementTextures, float2(input.uv * _Tile0), 0) * _VisualizeLayer0;
                     displacementFoam1.a + _FoamSubtract0;
@@ -242,19 +296,19 @@ Shader "Custom/FFTWater"{
                     float3 outputColor = customShading(normal, lightDir, viewDir, halfwayDir, light.color.rgb);
                     outputColor = lerp(outputColor, _TipColor, saturate(foam));
 
-                    if (_DebugTile0) {
+                    if (_DebugTile0){
                         outputColor = cos(input.uv.x * _Tile0 * PI) * cos(input.uv.y * _Tile0 * PI);
                     }
 
-                    if (_DebugTile1) {
+                    if (_DebugTile1){
                         outputColor = cos(input.uv.x * _Tile1) * 1024 * cos(input.uv.y * _Tile1) * 1024;
                     }
 
-                    if (_DebugTile2) {
+                    if (_DebugTile2){
                         outputColor = cos(input.uv.x * _Tile2) * 1024 * cos(input.uv.y * _Tile2) * 1024;
                     }
 
-                    if (_DebugTile3) {
+                    if (_DebugTile3){
                         outputColor = cos(input.uv.x * _Tile3) * 1024 * cos(input.uv.y * _Tile3) * 1024;
                     }
                     return float4(outputColor, 1.0);

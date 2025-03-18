@@ -12,6 +12,13 @@ struct OctaveParams {
 };
 StructuredBuffer<OctaveParams> _Octaves;
 
+/**
+ * @brief Fowler-Noll-Vo hash function (FNV-1a variant)
+ * @param x coordinate input for hashing
+ * @param y coordinate input for hashing
+ * @param z coordinate input for hashing
+ * @return A 32-bit unsigned integer hash value
+ */
 uint FNV32(uint x, uint y, uint z) {
     const uint FNV_PRIME = 16777619;
     uint hash = 2166136261;
@@ -21,6 +28,11 @@ uint FNV32(uint x, uint y, uint z) {
     return hash;
 }    
 
+/**
+ * @brief Generates a pseudo-random 3D gradient vector based on input coordinates
+ * @param coord 3D integer coordinates used as seed for the hash function
+ * @return A normalized 3D vector representing a gradient direction
+ */
 float3 HashGradient(uint3 coord) {
     uint hash = FNV32(coord.x, coord.y, coord.z);
     float phi = hash * 2.39996e-6; // 2π / 0xFFFFFFFF
@@ -32,6 +44,11 @@ struct NoiseOutput {
     float3 derivative;
 }; 
 
+/**
+ * @brief Computes Perlin noise value and its derivatives at a given 3D point
+ * @param p 3D point in space where noise should be evaluated
+ * @return NoiseOutput structure containing both the noise value and its 3D derivative
+ */
 NoiseOutput PerlinWithDerivatives(float3 p) {
     float3 pi = floor(p);
     float3 pf = p - pi;
@@ -78,6 +95,14 @@ NoiseOutput PerlinWithDerivatives(float3 p) {
     return output;                  
 }    
 
+/**
+ * @brief Main compute shader kernel that generates fractal noise with derivatives
+ * @param id Thread ID containing the x,y coordinates to process
+ * 
+ * Generates fractal (multi-octave) Perlin noise by summing multiple octaves
+ * with different frequencies and amplitudes. Stores both the final noise value
+ * and its derivatives in the output texture.
+ */
 [numthreads(8, 8, 1)]
 void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
     float2 uv = (id.xy + 0.5) / float2(2048.0, 2048.0);
