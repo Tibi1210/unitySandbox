@@ -16,24 +16,42 @@ float2 _Lambda, _NormalStrength;
 uint _N, _LengthScale0, _LengthScale1, _LengthScale2, _LengthScale3;
 float _FoamBias, _FoamDecayRate, _FoamAdd, _FoamThreshold;
 
-// Complex multiplication
+/**
+ * @brief Complex number multiplication
+ * @param a First complex number as float2 (real, imaginary)
+ * @param b Second complex number as float2 (real, imaginary)
+ * @return Result of complex multiplication as float2
+ */
 float2 ComplexMult(float2 a, float2 b){
     return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
-// Complex num in polar form
+/**
+ * @brief Converts angle to complex number in polar form (Euler's formula)
+ * @param x Angle in radians
+ * @return Complex number as float2 (cos(x), sin(x))
+ */
 float2 EulerFormula(float x){
     return float2(cos(x), sin(x));
 }
 
-// Integer hash from Hugo Elias
+/**
+ * @brief Integer hash function based on Hugo Elias algorithm
+ * @param n Unsigned integer seed value
+ * @return Pseudo-random float in range [0,1]
+ */
 float hash(uint n){
     n = (n << 13U) ^ n;
     n = n * (n * n * 15731U + 0x789221U) + 0x1376312589U;
     return float(n & uint(0x7fffffffU)) / float(0x7fffffff);
 }
 
-// Converts uniform random samples to Gaussian with Box-Muller Transform
+/**
+ * @brief Transforms uniform random samples to Gaussian distribution using Box-Muller transform
+ * @param u1 First uniform random sample in range [0,1]
+ * @param u2 Second uniform random sample in range [0,1]
+ * @return Two independent Gaussian random variables as float2
+ */
 float2 UniformToGaussian(float u1, float u2){
     float R = sqrt(-2.0 * log(u1));
     float theta = 2.0 * PI * u2;
@@ -55,19 +73,31 @@ struct SpectrumParameters{
 StructuredBuffer<SpectrumParameters> _Spectrums;
 
 // Referenced from: https://m.cdn.blog.hu/da/darthasylum/tutorials/C++/ch56_ocean.html
-// dispersion relation (frequency of waves) based on wavenumber
+/**
+ * @brief Calculates dispersion relation for water waves
+ * @param kMag Magnitude of wave vector (wavenumber)
+ * @return Angular frequency of waves based on wavenumber
+ */
 float Dispersion(float kMag){
     return sqrt(_Gravity * kMag * tanh(min(kMag * _Depth, 20)));
 }
 
-// Derivative of the dispersion relation with respect to wavenumber
+/**
+ * @brief Calculates derivative of dispersion relation with respect to wavenumber
+ * @param kMag Magnitude of wave vector (wavenumber)
+ * @return Derivative of dispersion relation
+ */
 float DispersionDerivative(float kMag){
     float th = tanh(min(kMag * _Depth, 20));
     float ch = cosh(kMag * _Depth);
     return _Gravity * (_Depth * kMag / ch / ch + th) / Dispersion(kMag) / 2.0;
 }
 
-// Normalization factor based on a given spread factor
+/**
+ * @brief Calculates normalization factor for directional spreading function
+ * @param s Spreading parameter
+ * @return Normalization factor to ensure directional spectrum integrates to 1
+ */
 float NormalizationFactor(float s){
     float s2 = s * s;
     float s3 = s2 * s;
@@ -79,12 +109,22 @@ float NormalizationFactor(float s){
     }
 }
 
-// Cosine spreading with a given angle and spread factor
+/**
+ * @brief Cosine-powered directional spreading function
+ * @param theta Direction angle in radians
+ * @param s Spreading parameter controlling directional concentration
+ * @return Directional spreading value
+ */
 float Cosine2s(float theta, float s){
     return NormalizationFactor(s) * pow(abs(cos(0.5 * theta)), 2.0 * s);
 }
 
-// Power for wave spread based on frequency
+/**
+ * @brief Calculates spreading power based on frequency ratio
+ * @param frequency Current wave frequency
+ * @param peakFrequency Peak frequency of the spectrum
+ * @return Spreading power parameter
+ */
 float SpreadPower(float frequency, float peakFrequency){
     if (frequency > peakFrequency){
         return 9.77 * pow(abs(frequency / peakFrequency), -2.5);
@@ -93,7 +133,13 @@ float SpreadPower(float frequency, float peakFrequency){
     }
 }
 
-// A directional spreading factor of waves based on angle, frequency, and spectrum parameters
+/**
+ * @brief Directional spreading function for wave spectrum
+ * @param theta Direction angle in radians
+ * @param frequency Current wave frequency
+ * @param spectrum Spectrum parameters structure
+ * @return Directional spreading factor
+ */
 float DirectionSpectrum(float theta, float frequency, SpectrumParameters spectrum){
     float s = SpreadPower(frequency, spectrum.peakFrequency) + 
               16 * tanh(min(frequency / spectrum.peakFrequency, 20)) * 
@@ -103,7 +149,11 @@ float DirectionSpectrum(float theta, float frequency, SpectrumParameters spectru
                 spectrum.spreadBlend);
 }
 
-// TMA correction factor
+/**
+ * @brief TMA (Texel-Marsen-Arsloe) correction for finite water depth
+ * @param frequency Wave frequency
+ * @return Correction factor for shallow water effects
+ */
 float TMACorrection(float frequency){
     float wH = frequency * sqrt(_Depth / _Gravity);
     if (wH <= 1.0){
@@ -115,11 +165,22 @@ float TMACorrection(float frequency){
     return 1.0;
 }
 
+/**
+ * @brief Applies exponential attenuation to short wavelengths
+ * @param kMag Magnitude of wave vector (wavenumber)
+ * @param spectrum Spectrum parameters structure
+ * @return Attenuation factor for short waves
+ */
 float ShortWavesFade(float kMag, SpectrumParameters spectrum){
     return exp(-spectrum.shortWavesFade * spectrum.shortWavesFade * kMag * kMag);
 }
 
-// JONSWAP-TMA spectrum implementation
+/**
+ * @brief JONSWAP-TMA wave spectrum model
+ * @param frequency Wave frequency
+ * @param spectrum Spectrum parameters structure
+ * @return Spectral energy density at given frequency
+ */
 float JONSWAP_TMA(float frequency, SpectrumParameters spectrum){
     float sigma = (frequency <= spectrum.peakFrequency) ? 0.07 : 0.09;
     float r = exp(-pow(frequency - spectrum.peakFrequency, 2) / 
@@ -136,7 +197,14 @@ float JONSWAP_TMA(float frequency, SpectrumParameters spectrum){
            pow(abs(spectrum.gamma), r);
 }
 
-// Generates initial wave spectrum data using the JONSWAP spectrum and directional spreading
+/**
+ * @brief Initializes the wave spectrum using JONSWAP-TMA model and directional spreading
+ * @param id Thread ID containing x,y coordinates to process
+ * 
+ * Generates the initial wave spectrum data for each scale level based on physical ocean wave models.
+ * Uses Gaussian random variables to create realistic wave patterns with proper statistical properties.
+ * Applies spectrum modifications based on wave frequency, direction, and depth.
+ */
 [numthreads(32, 32, 1)]
 void CS_InitializeSpectrum(uint3 id : SV_DISPATCHTHREADID){
     uint seed = id.x + _N * id.y + _N;
@@ -180,8 +248,14 @@ void CS_InitializeSpectrum(uint3 id : SV_DISPATCHTHREADID){
         }
     }
 }
-// Organizes spectrum data for FFT
-// Creates a structure in the spectrum data where each wave frequency component has its conjugate pair
+
+/**
+ * @brief Organizes spectrum data for FFT by creating conjugate pairs
+ * @param id Thread ID containing x,y coordinates to process
+ * 
+ * Creates a structure in the spectrum data where each wave frequency component 
+ * has its conjugate pair, ensuring the resulting height field will be real-valued.
+ */
 [numthreads(32, 32, 1)]
 void CS_PackSpectrumConjugate(uint3 id : SV_DISPATCHTHREADID){
     [unroll]
@@ -193,7 +267,14 @@ void CS_PackSpectrumConjugate(uint3 id : SV_DISPATCHTHREADID){
     }
 }
 
-// Updates the spectrum over time, applying dispersion relations to simulate evolving wave patterns
+/**
+ * @brief Updates the wave spectrum over time for FFT processing
+ * @param id Thread ID containing x,y coordinates to process
+ * 
+ * Evolves the wave spectrum over time by applying dispersion relations.
+ * Calculates wave displacements and slopes in different directions.
+ * Prepares data for the FFT transformation to generate the final wave field.
+ */
 [numthreads(32, 32, 1)]
 void CS_UpdateSpectrumForFFT(uint3 id : SV_DISPATCHTHREADID){
     float lengthScales[4] = { _LengthScale0, _LengthScale1, _LengthScale2, _LengthScale3 };
@@ -256,6 +337,13 @@ RWTexture2DArray<float4> _FourierTarget;
 // D3D11 the maximum size is 32kb
 groupshared float4 fftGroupBuffer[2][SIZE];
 
+/**
+ * @brief Calculates butterfly indices and twiddle factors for FFT
+ * @param step Current FFT step
+ * @param index Thread index
+ * @param indices Output parameter for butterfly indices
+ * @param twiddle Output parameter for twiddle factor
+ */
 void ButterflyValues(uint step, uint index, out uint2 indices, out float2 twiddle){
     const float twoPi = 6.28318530718;
 
@@ -272,6 +360,12 @@ void ButterflyValues(uint step, uint index, out uint2 indices, out float2 twiddl
     indices = uint2(i, i + b); // Pair of indices for the butterfly combination
 }
 
+/**
+ * @brief Performs Fast Fourier Transform on input data
+ * @param threadIndex Index of the current thread
+ * @param input Input data to transform
+ * @return FFT-transformed data
+ */
 float4 FFT(uint threadIndex, float4 input){
     fftGroupBuffer[0][threadIndex] = input;
     GroupMemoryBarrierWithGroupSync();
@@ -296,6 +390,13 @@ float4 FFT(uint threadIndex, float4 input){
     return fftGroupBuffer[pingpong][threadIndex];
 }
 
+/**
+ * @brief Performs horizontal Fast Fourier Transform on wave spectrum data
+ * @param id Thread ID containing x,y coordinates to process
+ * 
+ * Applies the FFT algorithm along the horizontal dimension of the wave spectrum.
+ * Transforms frequency domain data into spatial domain for each scale level.
+ */
 [numthreads(SIZE, 1, 1)]
 void CS_HorizontalFFT(uint3 id : SV_DISPATCHTHREADID){
     for (int i = 0; i < 8; ++i){
@@ -303,6 +404,13 @@ void CS_HorizontalFFT(uint3 id : SV_DISPATCHTHREADID){
     }
 }
 
+/**
+ * @brief Performs vertical Fast Fourier Transform on wave spectrum data
+ * @param id Thread ID containing x,y coordinates to process
+ * 
+ * Applies the FFT algorithm along the vertical dimension of the wave spectrum.
+ * Completes the 2D FFT process by transforming the partially transformed data.
+ */
 [numthreads(SIZE, 1, 1)]
 void CS_VerticalFFT(uint3 id : SV_DISPATCHTHREADID){
     for (int i = 0; i < 8; ++i){
@@ -310,11 +418,25 @@ void CS_VerticalFFT(uint3 id : SV_DISPATCHTHREADID){
     }
 }
 
+/**
+ * @brief Applies alternating sign pattern to FFT data
+ * @param data Input FFT data
+ * @param id Thread ID
+ * @return Permuted data with alternating signs
+ */
 float4 Permute(float4 data, float3 id){
     return data * (1.0 - 2.0 * ((id.x + id.y) % 2));
 }
 
-// Calculates the final wave displacements, slopes, and foam based on the processed wave spectrum
+/**
+ * @brief Assembles final displacement and slope maps from FFT results
+ * @param id Thread ID containing x,y coordinates to process
+ * 
+ * Calculates the final wave displacements, slopes, and foam based on the processed wave spectrum.
+ * Computes the Jacobian determinant to determine surface curvature and steepness.
+ * Applies foam generation based on wave breaking conditions.
+ * Stores results in output textures for rendering.
+ */
 [numthreads(32, 32, 1)]
 void CS_AssembleMaps(uint3 id : SV_DISPATCHTHREADID){
     [unroll]
