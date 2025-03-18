@@ -92,6 +92,8 @@ void FractalNoiseCS (uint3 id : SV_DispatchThreadID) {
     float frequency = _BaseFrequency;
     
     for(int i=0; i<_OctaveCount; i++) {
+        frequency += _Octaves[i].frequency;
+        amplitude += _Octaves[i].amplitude;
         NoiseOutput noise = PerlinWithDerivatives(float3(uv, 0.0) * frequency);
         total += noise.value * amplitude;
         derivative += noise.derivative * (amplitude * frequency);

@@ -745,7 +745,7 @@ MonoBehaviour:
     peakEnhancement: 1
     shortWavesFade: 0.0001
   normalStrength: 1
-  ambient: {r: 0, g: 0.33443767, b: 0.99215686, a: 0}
+  ambient: {r: 0, g: 0.79204726, b: 1, a: 0}
   tipColor: {r: 1, g: 0.8433972, b: 0.740566, a: 0}
   metalic: 0.1
   roughness: 0.225

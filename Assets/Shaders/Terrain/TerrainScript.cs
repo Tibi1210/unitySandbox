@@ -42,14 +42,10 @@ public class TerrainScript : MonoBehaviour
 
     public bool updateOctave = false;
     public float baseFrequency = 1;
-    [SerializeField]
-    public UI_OctaveParams octave1;
-    [SerializeField]
-    public UI_OctaveParams octave2;
-    [SerializeField]
-    public UI_OctaveParams octave3;
-    [SerializeField]
-    public UI_OctaveParams octave4;
+    [SerializeField] public UI_OctaveParams octave1;
+    [SerializeField] public UI_OctaveParams octave2;
+    [SerializeField] public UI_OctaveParams octave3;
+    [SerializeField] public UI_OctaveParams octave4;
 
     private ComputeBuffer octaveBuffer;
 
