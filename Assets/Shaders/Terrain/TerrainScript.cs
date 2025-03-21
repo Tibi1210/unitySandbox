@@ -17,8 +17,6 @@ public class TerrainScript : MonoBehaviour {
     private int GRID_DIM, resN;
 
     public struct OctaveParams {
-        public float frequency;
-        public float amplitude;
         public float lacunarity;
         public float persistence;
     }
@@ -28,8 +26,6 @@ public class TerrainScript : MonoBehaviour {
 
     [System.Serializable]
     public struct UI_OctaveParams {
-        public float frequency;
-        public float amplitude;
         public float lacunarity;
         public float persistence;
     }
@@ -43,8 +39,6 @@ public class TerrainScript : MonoBehaviour {
     private ComputeBuffer octaveBuffer;
 
     void FillOctaveStruct(UI_OctaveParams displaySettings, ref OctaveParams computeSettings) {
-        computeSettings.frequency = displaySettings.frequency;
-        computeSettings.amplitude = displaySettings.amplitude;
         computeSettings.lacunarity = displaySettings.lacunarity;
         computeSettings.persistence = displaySettings.persistence;
     }
@@ -98,7 +92,7 @@ public class TerrainScript : MonoBehaviour {
         
         for (int ti = 0, vi = 0, x = 0; x < sideVertCount; ++vi, ++x) {
             for (int z = 0; z < sideVertCount; ti += 6, ++vi, ++z) {
-                triangles[ti] = vi;
+                triangles[ti + 0] = vi;
                 triangles[ti + 1] = vi + 1;
                 triangles[ti + 2] = vi + sideVertCount + 2;
                 triangles[ti + 3] = vi;
@@ -127,10 +121,10 @@ public class TerrainScript : MonoBehaviour {
 
     void Start() {
         FractalNoiseCS = computeShader.FindKernel("FractalNoiseCS");
-        resN = 2048;
+        resN = 256;
         GRID_DIM = getGridDimFor(FractalNoiseCS);
         computeResult = CreateRenderTex(resN, resN, 1, RenderTextureFormat.Default, true);
-        octaveBuffer = new ComputeBuffer(4, 4 * sizeof(float));
+        octaveBuffer = new ComputeBuffer(OctaveCount, 2 * sizeof(float));
         SetSOctaveBuffers();
         computeShader.SetTexture(FractalNoiseCS, "_Result", computeResult);
         computeShader.SetInt("_OctaveCount", OctaveCount);

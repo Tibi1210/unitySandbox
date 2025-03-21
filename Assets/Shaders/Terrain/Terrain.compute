@@ -5,8 +5,6 @@ float _BaseFrequency;
 int _OctaveCount;
 
 struct OctaveParams {
-    float frequency;
-    float amplitude;
     float lacunarity;
     float persistence;
 };
@@ -105,7 +103,7 @@ NoiseOutput PerlinWithDerivatives(float3 p) {
  */
 [numthreads(8, 8, 1)]
 void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
-    float2 uv = (id.xy + 0.5) / float2(2048.0, 2048.0);
+    float2 uv = (id.xy + 0.5) / float2(256.0, 256.0);
 
     float total = 0;
     float3 derivative = 0;
@@ -113,14 +111,13 @@ void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
     float frequency = _BaseFrequency;
     
     for (int i = 0; i < _OctaveCount; i++) {
-        frequency += _Octaves[i].frequency;
-        amplitude += _Octaves[i].amplitude;
+
+        amplitude *= _Octaves[i].persistence;
+        frequency *= _Octaves[i].lacunarity;
+
         NoiseOutput noise = PerlinWithDerivatives(float3(uv, 0.0) * frequency);
         total += noise.value * amplitude;
         derivative += noise.derivative * (amplitude * frequency);
-        
-        amplitude *= _Octaves[i].persistence;
-        frequency *= _Octaves[i].lacunarity;
     }
     
     _Result[uint3(id.xy, 0)] = float4(total, derivative);
