@@ -392,7 +392,6 @@ Shader "Custom/FFTWater_BRDF"{
                     BRDFResults reflection = DisneyBRDF(_Ambient, lightDir, viewDir, normal, tangent, Y);
 
                     float3 outputColor = light.color.rgb * (reflection.diffuse + reflection.specular + reflection.clearcoat);
-                    outputColor *= DotClamped(normal, lightDir);
                     outputColor = lerp(outputColor, _TipColor, saturate(foam));
 
                     if (_DebugTile0){

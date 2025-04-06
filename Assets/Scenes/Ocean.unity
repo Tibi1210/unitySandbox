@@ -745,14 +745,14 @@ MonoBehaviour:
     peakEnhancement: 1
     shortWavesFade: 0.0001
   normalStrength: 1
-  ambient: {r: 0, g: 0.79204726, b: 1, a: 0}
-  tipColor: {r: 1, g: 0.8433972, b: 0.740566, a: 0}
-  metalic: 0.1
-  roughness: 0.225
+  ambient: {r: 0.019607844, g: 0.25490198, b: 0.44313726, a: 0}
+  tipColor: {r: 1, g: 1, b: 1, a: 0}
+  metalic: 0.255
+  roughness: 0.1
   subsurface: 1
-  specular: 1
+  specular: 2
   specularTint: 1
-  anisotropic: 1
+  anisotropic: 0
   sheen: 1
   sheenTint: 1
   clearCoat: 1
@@ -981,7 +981,7 @@ MonoBehaviour:
   fresnelStrength: 1
   fresnelShininess: 5
   fresnelNormalStrength: 1
-  tipColor: {r: 0.75, g: 0.84375, b: 1, a: 0}
+  tipColor: {r: 1, g: 1, b: 1, a: 0}
   foamBias: 0.53
   foamThreshold: 0.3
   foamAdd: 0.906

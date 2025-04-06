@@ -116,8 +116,8 @@ void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
         frequency *= _Octaves[i].lacunarity;
 
         NoiseOutput noise = PerlinWithDerivatives(float3(uv, 0.0) * frequency);
-        total += noise.value * amplitude;
-        derivative += noise.derivative * (amplitude * frequency);
+        total += abs(noise.value) * amplitude;
+        derivative += abs(noise.derivative) * (amplitude * frequency);
     }
     
     _Result[uint3(id.xy, 0)] = float4(total, derivative);

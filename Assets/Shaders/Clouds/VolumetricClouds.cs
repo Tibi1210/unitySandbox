@@ -12,8 +12,7 @@ public class VolumetricClouds : ScriptableRendererFeature
         public Material material;
         public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
         public Color color = new Color(1,1,1,1);
-        [Range(0, 1)]
-        public float alpha = 1;
+        [Range(0, 1)] public float alpha = 1;
         public Vector3 BoundsMin = new Vector3(-250,50,-250);
         public Vector3 BoundsMax = new Vector3(250,80,250);
         public float RenderDistance = 1000;
@@ -40,8 +39,7 @@ public class VolumetricClouds : ScriptableRendererFeature
     [System.Serializable]
     public class DetailCloudSettings
     {
-        [Range(0, 1)]
-        public float detailCloudWeight = 0.24f;
+        [Range(0, 1)] public float detailCloudWeight = 0.24f;
         public Texture3D DetailCloudNoiseTexure;
         public float DetailCloudScale = 1;
         public Vector3 DetailCloudWind = new Vector3(0.5f,0,0);
@@ -101,51 +99,28 @@ public class VolumetricClouds : ScriptableRendererFeature
                 //here we set out material properties
                 //...
                 settings.material.SetFloat("_alpha", settings.alpha);
-
                 settings.material.SetColor("_color", settings.color);
-
                 settings.material.SetVector("_BoundsMin", settings.BoundsMin);
-
                 settings.material.SetVector("_BoundsMax", settings.BoundsMax);
-
                 settings.material.SetFloat("_CloudScale", Mathf.Abs(cloudSettings.CloudScale));
-
                 settings.material.SetVector("_Wind", cloudSettings.Wind);
-
                 settings.material.SetFloat("_detailNoiseScale", Mathf.Abs(detailCloudSettings.DetailCloudScale));
-
                 settings.material.SetVector("_detailNoiseWind", detailCloudSettings.DetailCloudWind);
-
                 settings.material.SetFloat("_containerEdgeFadeDst", Mathf.Abs(cloudSettings.ContainerEdgeFadeDst));
-
                 settings.material.SetTexture("_ShapeNoise", cloudSettings.CloudNoiseTexure);
-
                 settings.material.SetTexture("_DetailNoise", detailCloudSettings.DetailCloudNoiseTexure);
-
                 settings.material.SetFloat("_detailNoiseWeight", detailCloudSettings.detailCloudWeight);
-
                 settings.material.SetFloat("_DensityThreshold", cloudSettings.DensityThreshold);
-
                 settings.material.SetFloat("_DensityMultiplier", Mathf.Abs(cloudSettings.DensityMultiplier));
-
                 settings.material.SetInteger("_NumSteps", cloudSettings.Steps);
-
                 settings.material.SetFloat("_lightAbsorptionThroughCloud", cloudSettings.LightAbsorptionThroughCloud);
-
                 settings.material.SetVector("_phaseParams", cloudSettings.PhaseParams);
-
                 settings.material.SetInteger("_numStepsLight", cloudSettings.LightSteps);
-
                 settings.material.SetFloat("_lightAbsorptionTowardSun", cloudSettings.LightAbsorptionTowardSun);
-
                 settings.material.SetFloat("_darknessThreshold", cloudSettings.DarknessThreshold);
-
                 settings.material.SetFloat("_cloudSmooth", cloudSettings.CloudSmooth);
-
                 settings.material.SetTexture("_BlueNoise", blueNoiseSettings.BlueNoiseTexure);
-
                 settings.material.SetFloat("_rayOffsetStrength", blueNoiseSettings.RayOffsetStrength);
-
                 settings.material.SetFloat("_RenderDistance", settings.RenderDistance);
 
                 //never use a Blit from source to source, as it only works with MSAA
@@ -167,7 +142,6 @@ public class VolumetricClouds : ScriptableRendererFeature
     }
 
     Pass pass;
-    RTHandle renderTextureHandle;
     public override void Create()
     {
         pass = new Pass("Volumetric Clouds");
