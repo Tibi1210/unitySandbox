@@ -19,6 +19,8 @@ public class TerrainScript : MonoBehaviour {
     public struct OctaveParams {
         public float lacunarity;
         public float persistence;
+        public int rotation;
+        public float shift;
     }
 
     const int OctaveCount = 4;
@@ -27,7 +29,9 @@ public class TerrainScript : MonoBehaviour {
     [System.Serializable]
     public struct UI_OctaveParams {
         public float lacunarity;
-        public float persistence;
+        [Range(0.0f, 1.0f)] public float persistence;
+        [Range(0, 360)] public int rotation;
+        public float shift;
     }
 
     public bool updateOctave = false;
@@ -38,9 +42,27 @@ public class TerrainScript : MonoBehaviour {
     [SerializeField] public UI_OctaveParams octave4;
     private ComputeBuffer octaveBuffer;
 
+#region Material Settings
+    [Header("Material Settings")]
+    [ColorUsageAttribute(false, true)] public Color ambient;
+    [ColorUsageAttribute(false, true)] public Color ambient2;
+    [Range(0.0f, 1.0f)] public float metalic = 1;
+    [Range(0.0f, 1.0f)] public float roughness = 1;
+    [Range(0.0f, 1.0f)] public float subsurface = 1;
+    [Range(0.0f, 2.0f)] public float specular = 1;
+    [Range(0.0f, 1.0f)] public float specularTint = 1;
+    [Range(0.0f, 1.0f)] public float anisotropic = 1;
+    [Range(0.0f, 1.0f)] public float sheen = 1;
+    [Range(0.0f, 1.0f)] public float sheenTint = 1;
+    [Range(0.0f, 1.0f)] public float clearCoat = 1;
+    [Range(0.0f, 1.0f)] public float clearCoatGloss = 1;
+#endregion
+
     void FillOctaveStruct(UI_OctaveParams displaySettings, ref OctaveParams computeSettings) {
         computeSettings.lacunarity = displaySettings.lacunarity;
         computeSettings.persistence = displaySettings.persistence;
+        computeSettings.rotation = displaySettings.rotation;
+        computeSettings.shift = displaySettings.shift;
     }
 
     void SetSOctaveBuffers() {
@@ -123,8 +145,8 @@ public class TerrainScript : MonoBehaviour {
         FractalNoiseCS = computeShader.FindKernel("FractalNoiseCS");
         resN = 256;
         GRID_DIM = getGridDimFor(FractalNoiseCS);
-        computeResult = CreateRenderTex(resN, resN, 1, RenderTextureFormat.Default, true);
-        octaveBuffer = new ComputeBuffer(OctaveCount, 2 * sizeof(float));
+        computeResult = CreateRenderTex(resN, resN, 2, RenderTextureFormat.Default, true);
+        octaveBuffer = new ComputeBuffer(OctaveCount, 3 * sizeof(float) + sizeof(int));
         SetSOctaveBuffers();
         computeShader.SetTexture(FractalNoiseCS, "_Result", computeResult);
         computeShader.SetInt("_OctaveCount", OctaveCount);
@@ -143,6 +165,18 @@ public class TerrainScript : MonoBehaviour {
             computeShader.SetFloat("_BaseFrequency", baseFrequency);
             computeShader.Dispatch(FractalNoiseCS, GRID_DIM, GRID_DIM, 1);
         }
+        objMaterial.SetVector("_TopColor", ambient);
+        objMaterial.SetVector("_BotColor", ambient2);
+        objMaterial.SetFloat("_Metalic", metalic);
+        objMaterial.SetFloat("_Subsurface", subsurface);
+        objMaterial.SetFloat("_Specular", specular);
+        objMaterial.SetFloat("_Roughness", roughness);
+        objMaterial.SetFloat("_SpecularTint", specularTint);
+        objMaterial.SetFloat("_Anisotropic", anisotropic);
+        objMaterial.SetFloat("_Sheen", sheen);
+        objMaterial.SetFloat("_SheenTint", sheenTint);
+        objMaterial.SetFloat("_ClearCoat", clearCoat);
+        objMaterial.SetFloat("_ClearCoatGloss", clearCoatGloss);
     }
 
     void OnDisable() {

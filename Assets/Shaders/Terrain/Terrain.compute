@@ -7,6 +7,8 @@ int _OctaveCount;
 struct OctaveParams {
     float lacunarity;
     float persistence;
+    int rotation;
+    float shift;
 };
 StructuredBuffer<OctaveParams> _Octaves;
 
@@ -78,20 +80,91 @@ NoiseOutput PerlinWithDerivatives(float3 p) {
     float ef = lerp(e, f, t.x);
     float gh = lerp(g, h, t.x);
     
-    // Final value and derivatives
+    // y-direction interpolation
+    float abcd = lerp(ab, cd, t.y);
+    float efgh = lerp(ef, gh, t.y);
+    
+    // Final value
     NoiseOutput output;
-    output.value = lerp(lerp(ab, cd, t.y), lerp(ef, gh, t.y), t.z);
+    output.value = lerp(abcd, efgh, t.z);
     
-    float3 dtdx = dt * float3(1, 0, 0);
-    float3 dtdy = dt * float3(0, 1, 0);
-    float3 dtdz = dt * float3(0, 0, 1);
+    // Compute derivatives using the chain rule
+    float3 temp1, temp2, temp3;
     
-    // Derivative chain rule application
-    output.derivative = (grads[0] * (1 - t.x) + grads[1] * t.x) * dtdx  
-                      + (grads[2] * (1 - t.x) + grads[3] * t.x) * dtdy  
-                      + (grads[4] * (1 - t.x) + grads[5] * t.x) * dtdz;
+    // Partial derivatives with respect to x, y, z
+    float da_dx = grads[0].x;
+    float db_dx = grads[1].x;
+    float dc_dx = grads[2].x;
+    float dd_dx = grads[3].x;
+    float de_dx = grads[4].x;
+    float df_dx = grads[5].x;
+    float dg_dx = grads[6].x;
+    float dh_dx = grads[7].x;
+    
+    float da_dy = grads[0].y;
+    float db_dy = grads[1].y;
+    float dc_dy = grads[2].y;
+    float dd_dy = grads[3].y;
+    float de_dy = grads[4].y;
+    float df_dy = grads[5].y;
+    float dg_dy = grads[6].y;
+    float dh_dy = grads[7].y;
+    
+    float da_dz = grads[0].z;
+    float db_dz = grads[1].z;
+    float dc_dz = grads[2].z;
+    float dd_dz = grads[3].z;
+    float de_dz = grads[4].z;
+    float df_dz = grads[5].z;
+    float dg_dz = grads[6].z;
+    float dh_dz = grads[7].z;
+    
+    // Compute derivative with respect to x
+    float dab_dx = lerp(da_dx, db_dx, t.x) + (b - a) * dt.x;
+    float dcd_dx = lerp(dc_dx, dd_dx, t.x) + (d - c) * dt.x;
+    float def_dx = lerp(de_dx, df_dx, t.x) + (f - e) * dt.x;
+    float dgh_dx = lerp(dg_dx, dh_dx, t.x) + (h - g) * dt.x;
+    
+    float dabcd_dx = lerp(dab_dx, dcd_dx, t.y) + (cd - ab) * dt.y;
+    float defgh_dx = lerp(def_dx, dgh_dx, t.y) + (gh - ef) * dt.y;
+    
+    float dfinal_dx = lerp(dabcd_dx, defgh_dx, t.z) + (efgh - abcd) * dt.z;
+    
+    // Compute derivative with respect to y
+    float dab_dy = lerp(da_dy, db_dy, t.x);
+    float dcd_dy = lerp(dc_dy, dd_dy, t.x);
+    float def_dy = lerp(de_dy, df_dy, t.x);
+    float dgh_dy = lerp(dg_dy, dh_dy, t.x);
+    
+    float dabcd_dy = lerp(dab_dy, dcd_dy, t.y) + (cd - ab) * dt.y;
+    float defgh_dy = lerp(def_dy, dgh_dy, t.y) + (gh - ef) * dt.y;
+    
+    float dfinal_dy = lerp(dabcd_dy, defgh_dy, t.z) + (efgh - abcd) * dt.z;
+    
+    // Compute derivative with respect to z
+    float dab_dz = lerp(da_dz, db_dz, t.x);
+    float dcd_dz = lerp(dc_dz, dd_dz, t.x);
+    float def_dz = lerp(de_dz, df_dz, t.x);
+    float dgh_dz = lerp(dg_dz, dh_dz, t.x);
+    
+    float dabcd_dz = lerp(dab_dz, dcd_dz, t.y);
+    float defgh_dz = lerp(def_dz, dgh_dz, t.y);
+    
+    float dfinal_dz = lerp(dabcd_dz, defgh_dz, t.z) + (efgh - abcd) * dt.z;
+    
+    output.derivative = float3(dfinal_dx, dfinal_dy, dfinal_dz);
+    
     return output;                  
-}    
+}   
+
+#define PI 3.14159265358979323846
+float rad(int angle){
+    return angle * (PI / 180);
+}
+
+float2x2 direction(float angle){
+    return float2x2(normalize(float4(cos(angle),sin(angle),-sin(angle),cos(angle))));
+}  
 
 /**
  * @brief Main compute shader kernel that generates fractal noise with derivatives
@@ -101,7 +174,7 @@ NoiseOutput PerlinWithDerivatives(float3 p) {
  * with different frequencies and amplitudes. Stores both the final noise value
  * and its derivatives in the output texture.
  */
-[numthreads(8, 8, 1)]
+[numthreads(32, 32, 1)]
 void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
     float2 uv = (id.xy + 0.5) / float2(256.0, 256.0);
 
@@ -115,10 +188,20 @@ void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
         amplitude *= _Octaves[i].persistence;
         frequency *= _Octaves[i].lacunarity;
 
-        NoiseOutput noise = PerlinWithDerivatives(float3(uv, 0.0) * frequency);
-        total += abs(noise.value) * amplitude;
-        derivative += abs(noise.derivative) * (amplitude * frequency);
+        uv = mul(direction(rad(_Octaves[i].rotation)), uv) * frequency + _Octaves[i].shift;
+
+        NoiseOutput noise = PerlinWithDerivatives(float3(abs(uv), 0.0));
+        total += noise.value * amplitude;
+        derivative += noise.derivative * (amplitude * frequency);
     }
     
-    _Result[uint3(id.xy, 0)] = float4(total, derivative);
+    float3 normal = float3(-derivative.x, 1.0, -derivative.z);
+    normal = normalize(normal);
+
+    float3 tangentX = normalize(float3(1, derivative.x, 0));
+    float3 tangentZ = normalize(float3(0, derivative.z, 1));
+    float3 tangent =  tangentX + tangentZ;
+
+    _Result[uint3(id.xy, 0)] = float4(total, normal.x, normal.y, normal.z);
+    _Result[uint3(id.xy, 1)] = float4(tangent, 0); // Store tangent in another layer
 }

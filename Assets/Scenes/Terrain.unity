@@ -282,19 +282,39 @@ MonoBehaviour:
   materialShader: {fileID: 4800000, guid: 8bbcb05a32d30a7498c544bcbe260d2e, type: 3}
   computeShader: {fileID: 7200000, guid: cc4e68c4b50c79f49b224ca55ae12982, type: 3}
   updateOctave: 1
-  baseFrequency: 5.88
+  baseFrequency: 2.38
   octave1:
     lacunarity: 1.37
     persistence: 0.66
+    rotation: 0
+    shift: 0
   octave2:
     lacunarity: 1.09
-    persistence: 1.96
+    persistence: 1
+    rotation: 0
+    shift: 0
   octave3:
     lacunarity: 2.56
     persistence: 0.21
+    rotation: 0
+    shift: 0
   octave4:
     lacunarity: 6.77
     persistence: 0.2
+    rotation: 0
+    shift: 0
+  ambient: {r: 0, g: 1, b: 0.10163808, a: 0}
+  ambient2: {r: 0, g: 0.0341932, b: 0.3584906, a: 0}
+  metalic: 0
+  roughness: 0
+  subsurface: 0
+  specular: 0
+  specularTint: 0
+  anisotropic: 1
+  sheen: 1
+  sheenTint: 1
+  clearCoat: 0
+  clearCoatGloss: 0
 --- !u!23 &742870146
 MeshRenderer:
   m_ObjectHideFlags: 0
