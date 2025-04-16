@@ -70,7 +70,7 @@ Shader "_Tibi/Terrain_LOD"{
                 float3 positionWS : TEXCOORD1;
                 float2 uv : TEXCOORD0;
                 float3 normal: TEXCOORD2;
-                float4 tangent: TEXCOORD3;
+                float3 tangent: TEXCOORD3;
             };
 
             struct TessellationControlPoint{
@@ -104,6 +104,7 @@ Shader "_Tibi/Terrain_LOD"{
                 float4 _BaseTex_ST;
                 float4 _TopColor, _BotColor;
                 float _Roughness, _Metallic, _Subsurface, _Specular, _SpecularTint, _Anisotropic, _Sheen, _SheenTint, _ClearCoat, _ClearCoatGloss;
+                int _isNormal;
             CBUFFER_END
 
             /**
@@ -125,22 +126,29 @@ Shader "_Tibi/Terrain_LOD"{
              */
             v2f tessVert(VertexData input){
                 v2f output;
+                
+                float2 uv = input.uv * 5.0;
+                output.uv = TRANSFORM_TEX(uv, _BaseTex);
+
+                //float4 displacement = noised(float3(uv, 1.0));
+                float4 displacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
+
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
                 //float4 positionWS = mul(unity_ObjectToWorld, input.positionOS);
                 float4 positionWS = float4(vertexInput.positionWS,1);
-        
-                float4 displacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
-                float4 tangent = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 1, 0);
                 positionWS.y = displacement.x * 100; 
 
                 // Calculate normal from derivatives
-                float3 normal = displacement.yzw;
+                float3 normal = float3(-displacement.y, 1.0, -displacement.w);
+                normal = normalize(normal);
 
                 output.positionWS = positionWS;
-                output.normal = normal;
-                output.tangent = tangent;
                 output.positionCS = mul(UNITY_MATRIX_VP, positionWS);
-                output.uv = TRANSFORM_TEX(input.uv, _BaseTex);
+
+                VertexNormalInputs normalInput = GetVertexNormalInputs(normal);
+                output.normal = normalInput.normalWS;
+                output.tangent = normalInput.tangentWS;
+
                 return output;
             }
 
@@ -342,7 +350,7 @@ Shader "_Tibi/Terrain_LOD"{
                 float3 viewDir = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 float3 halfwayDir = normalize(lightDir + viewDir);
 
-                float4 tangent = input.tangent;
+                float4 tangent = float4(input.tangent, 1.0);
                 float3 bitangent = cross(input.normal, tangent);
                 tangent.w = sign(dot(bitangent, cross(input.normal, tangent)));
                 float3 Y = normalize(cross(input.normal, tangent) * tangent.w);
@@ -355,16 +363,17 @@ Shader "_Tibi/Terrain_LOD"{
 
                 float normalizedY = saturate((input.positionWS.y - _MinY) / (_MaxY - _MinY));
 
-                //float3 gradientColor = lerp(_BotColor, _TopColor, normalizedY);
-                float3 gradientColor = lerp(botColor, topColor, normalizedY);
 
-
-                return float4(gradientColor,1.0);
-                    
+                if(_isNormal){ 
+                    return float4(input.normal,1.0);
+                }
+                return float4(lerp(botColor, topColor, normalizedY),1.0);
+  
             }
 
             ENDHLSL
         }
     }
+
         Fallback Off
 }

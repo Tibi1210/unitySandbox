@@ -35,6 +35,7 @@ public class TerrainScript : MonoBehaviour {
     }
 
     public bool updateOctave = false;
+    public bool showNormal = false;
     public float baseFrequency = 1;
     [SerializeField] public UI_OctaveParams octave1;
     [SerializeField] public UI_OctaveParams octave2;
@@ -145,7 +146,7 @@ public class TerrainScript : MonoBehaviour {
         FractalNoiseCS = computeShader.FindKernel("FractalNoiseCS");
         resN = 256;
         GRID_DIM = getGridDimFor(FractalNoiseCS);
-        computeResult = CreateRenderTex(resN, resN, 2, RenderTextureFormat.Default, true);
+        computeResult = CreateRenderTex(resN, resN, 1, RenderTextureFormat.Default, true);
         octaveBuffer = new ComputeBuffer(OctaveCount, 3 * sizeof(float) + sizeof(int));
         SetSOctaveBuffers();
         computeShader.SetTexture(FractalNoiseCS, "_Result", computeResult);
@@ -165,6 +166,7 @@ public class TerrainScript : MonoBehaviour {
             computeShader.SetFloat("_BaseFrequency", baseFrequency);
             computeShader.Dispatch(FractalNoiseCS, GRID_DIM, GRID_DIM, 1);
         }
+        objMaterial.SetInt("_isNormal", showNormal ? 1 : 0);
         objMaterial.SetVector("_TopColor", ambient);
         objMaterial.SetVector("_BotColor", ambient2);
         objMaterial.SetFloat("_Metalic", metalic);
