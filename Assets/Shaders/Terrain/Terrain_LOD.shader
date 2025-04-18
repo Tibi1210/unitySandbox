@@ -133,17 +133,20 @@ Shader "_Tibi/Terrain_LOD"{
                 //float4 displacement = noised(float3(uv, 1.0));
                 float4 displacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_BaseTex, sampler_BaseTex, input.uv, 0, 0);
 
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
-                //float4 positionWS = mul(unity_ObjectToWorld, input.positionOS);
-                float4 positionWS = float4(vertexInput.positionWS,1);
-                positionWS.y = displacement.x * 100; 
+                float4 p = input.positionOS;
+                p.y = displacement.x * 100.0; 
+  
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(p);
 
+                //float4 positionWS = float4(vertexInput.positionWS,1);
+                //positionWS.y += displacement.x * 100; 
+ 
                 // Calculate normal from derivatives
                 float3 normal = float3(-displacement.y, 1.0, -displacement.w);
                 normal = normalize(normal);
 
-                output.positionWS = positionWS;
-                output.positionCS = mul(UNITY_MATRIX_VP, positionWS);
+                output.positionWS = vertexInput.positionWS;
+                output.positionCS = mul(UNITY_MATRIX_VP, float4(vertexInput.positionWS, 1.0));
 
                 VertexNormalInputs normalInput = GetVertexNormalInputs(normal);
                 output.normal = normalInput.normalWS;
@@ -341,7 +344,7 @@ Shader "_Tibi/Terrain_LOD"{
             float4 frag(v2f input) : SV_TARGET{
 
                 float _MinY = 0; 
-                float _MaxY = 50;
+                float _MaxY = 100;
 
                 // shading modell
                 float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);
@@ -363,10 +366,6 @@ Shader "_Tibi/Terrain_LOD"{
 
                 float normalizedY = saturate((input.positionWS.y - _MinY) / (_MaxY - _MinY));
 
-
-                if(_isNormal){ 
-                    return float4(input.normal,1.0);
-                }
                 return float4(lerp(botColor, topColor, normalizedY),1.0);
   
             }

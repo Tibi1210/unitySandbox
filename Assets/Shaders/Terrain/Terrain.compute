@@ -1,8 +1,11 @@
 #pragma kernel FractalNoiseCS
 
 RWTexture2DArray<float4> _Result;
+RWStructuredBuffer<float> _Collision;
+
 float _BaseFrequency;
 int _OctaveCount;
+int _N;
 
 struct OctaveParams {
     float lacunarity;
@@ -78,7 +81,7 @@ float2x2 direction(float angle){
  */
 [numthreads(32, 32, 1)]
 void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
-    float2 uv = (id.xy + 0.5) / float2(256.0, 256.0);
+    float2 uv = (id.xy + 0.5) / float2(_N, _N);
 
     float total = 0;
     float3 derivative = 0;
@@ -97,5 +100,6 @@ void FractalNoiseCS(uint3 id : SV_DispatchThreadID) {
         derivative += noise.yzw * (amplitude);
     }
 
-    _Result[uint3(id.xy, 0)] = float4(total, derivative);
+    _Result[uint3(id.xy, 0)] = float4(abs(total), derivative);
+    _Collision[id.y * _N + id.x] = abs(total);
 }
