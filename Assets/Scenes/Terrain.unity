@@ -303,6 +303,7 @@ MonoBehaviour:
     persistence: 0.2
     rotation: 0
     shift: 0
+  reCalcCollision: 0
   ambient: {r: 0, g: 1, b: 0.10163808, a: 0}
   ambient2: {r: 0, g: 0.0341932, b: 0.3584906, a: 0}
   metalic: 0

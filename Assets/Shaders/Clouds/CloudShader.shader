@@ -7,66 +7,67 @@ Shader "Hidden/CloudShader"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
+        Tags{
+            "RenderType" = "Opaque"
+            "Queue" = "Geometry"
+            "RenderPipeline" = "UniversalPipeline"
+        }
 
         Pass
         {
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
+            struct VertexData{
+                float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
             };
 
-            struct v2f
-            {
+            struct v2f{
+                float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float4 vertex : SV_POSITION;
-                float3 viewDir : TEXCOORD1;
+                float3 positionWS : TEXCOORD2;
+                float3 viewDir : TEXCOORD3;
             };
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-            sampler2D _CameraDepthTexture;
-            float3 _BoundsMin, _BoundsMax;
-            float _CloudScale, _detailNoiseScale;
-            float3 _Wind, _detailNoiseWind;
-            Texture2D<float4> _ShapeNoise;
-            Texture3D<float4> _DetailNoise;
-            Texture2D<float4> _BlueNoise;
-            SamplerState sampler_ShapeNoise;
-            SamplerState sampler_DetailNoise;
-            SamplerState sampler_BlueNoise;
-            float _containerEdgeFadeDst;
-            float _detailNoiseWeight;
-            float _DensityThreshold;
-            float _DensityMultiplier;
-            float _lightAbsorptionThroughCloud;
-            float4 _phaseParams;
-            int _NumSteps, _numStepsLight;
-            float _lightAbsorptionTowardSun;
-            float _darknessThreshold;
-            float _cloudSmooth;
-            half4 _color;
-            float _alpha;
-            float _rayOffsetStrength;
-            float _RenderDistance;
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
+            TEXTURE2D(_ShapeNoise);
+            SAMPLER(sampler_ShapeNoise);
+            TEXTURE2D(_BlueNoise);
+            SAMPLER(sampler_BlueNoise);
+            TEXTURE3D(_DetailNoise);
+            SAMPLER(sampler_DetailNoise);
 
-            v2f vert (appdata v)
+            CBUFFER_START(UnityPerMaterial)
+                float4 _MainTex_ST, _ShapeNoise_ST, _DetailNoise_ST, _BlueNoise_ST;
+                float4 _color;
+                float _alpha, _RenderDistance;
+                float3 _BoundsMin, _BoundsMax;
+                int _NumSteps, _numStepsLight;
+                float _CloudScale, _cloudSmooth, _detailNoiseWeight, _detailNoiseScale;
+                float3 _Wind, _detailNoiseWind;
+                float4 _phaseParams;
+                float _containerEdgeFadeDst, _DensityThreshold, _DensityMultiplier, _lightAbsorptionThroughCloud, _lightAbsorptionTowardSun, _darknessThreshold;
+                float _rayOffsetStrength;
+            CBUFFER_END
+
+            v2f vert (VertexData input)
             {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-
-                float3 viewVector = mul(unity_CameraInvProjection, float4(v.uv * 2 - 1, 0, -1));
-                o.viewDir = mul(unity_CameraToWorld, float4(viewVector,0));
-                return o;
+                v2f output;
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.positionCS = mul(UNITY_MATRIX_VP, float4(vertexInput.positionWS, 1.0));
+                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+                output.positionWS = vertexInput.positionWS;
+                float3 viewVector = mul(unity_CameraInvProjection, float4(input.uv * 2 - 1, 0, -1));
+                output.viewDir = mul(unity_CameraToWorld, float4(viewVector,0));
+                return output;
             }
 
             float remap(float v, float minOld, float maxOld, float minNew, float maxNew) {
@@ -74,8 +75,8 @@ Shader "Hidden/CloudShader"
             }
 
             float2 squareUV(float2 uv) {
-                float width = _ScreenParams.x;
-                float height =_ScreenParams.y;
+                float width = _ScaledScreenParams.x;
+                float height =_ScaledScreenParams.y;
                 //float minDim = min(width, height);
                 float scale = 1000;
                 float x = uv.x * width;
@@ -120,8 +121,8 @@ Shader "Hidden/CloudShader"
                 float dstFromEdgeZ = min(_containerEdgeFadeDst, min(pos.z - _BoundsMin.z, _BoundsMax.z - pos.z));
                 float edgeWeight = min(dstFromEdgeZ,dstFromEdgeX)/_containerEdgeFadeDst;
 
-                float4 shape = _ShapeNoise.SampleLevel(sampler_ShapeNoise, uvw.xz, 0);
-                float4 detail = _DetailNoise.SampleLevel(sampler_DetailNoise, duvw, 0);
+                float4 shape = SAMPLE_TEXTURE2D_LOD(_ShapeNoise, sampler_ShapeNoise, uvw.xz, 0);
+                float4 detail = SAMPLE_TEXTURE3D_LOD(_DetailNoise, sampler_DetailNoise, duvw, 0);
                 float density = max(0, lerp(shape.x, detail.x, _detailNoiseWeight) - _DensityThreshold) * _DensityMultiplier;
                 return density * edgeWeight * (dstFromEdgeY/_cloudSmooth);
             }
@@ -129,7 +130,7 @@ Shader "Hidden/CloudShader"
             // Henyey-Greenstein
             float hg(float a, float g) {
                 float g2 = g*g;
-                return (1-g2) / (4*3.1415*pow(1+g2-2*g*(a), 1.5));
+                return (1-g2) / (4*3.1415*pow(abs(1+g2-2*g*(a)), 1.5));
             }
 
             float phase(float a) {
@@ -140,7 +141,9 @@ Shader "Hidden/CloudShader"
 
             // Calculate proportion of light that reaches the given point from the lightsource
             float lightmarch(float3 position) {
-                float3 dirToLight = _WorldSpaceLightPos0.xyz;
+                float4 shadowCoord = TransformWorldToShadowCoord(position);
+                Light light = GetMainLight(shadowCoord);
+                float3 dirToLight = light.direction;
                 float dstInsideBox = rayBoxDst(_BoundsMin, _BoundsMax, position, 1/dirToLight).y;
                 
                 float stepSize = dstInsideBox/_numStepsLight;
@@ -155,18 +158,21 @@ Shader "Hidden/CloudShader"
                 return _darknessThreshold + transmittance * (1-_darknessThreshold);
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            float4 frag (v2f input) : SV_Target
             {
                 // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv);
+                float4 col = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, input.uv, 0);
 
-                float viewLength = length(i.viewDir);
-                float3 rayOrigin = _WorldSpaceCameraPos;
-                float3 rayDir = i.viewDir / viewLength;
+                float viewLength = length(input.viewDir); 
+                float3 rayOrigin = input.positionWS;
+                float3 rayDir = input.viewDir / viewLength;
 
                 //Depth
-                float nonlin_depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
-                float depth = LinearEyeDepth(nonlin_depth) * viewLength;
+				float2 screenUVs = GetNormalizedScreenSpaceUV(input.positionCS);
+				float rawDepth = SampleSceneDepth(screenUVs);
+				float depth = LinearEyeDepth(rawDepth, _ZBufferParams);
+
+
 
                 float2 rayToContainerInfo = rayBoxDst(_BoundsMin, _BoundsMax, rayOrigin, 1/rayDir);
                 float dstToBox = rayToContainerInfo.x;
@@ -174,7 +180,8 @@ Shader "Hidden/CloudShader"
                 if(dstToBox + dstInsideBox > _RenderDistance) return col;
 
                 // random starting offset (makes low-res results noisy rather than jagged/glitchy, which is nicer)
-                float randomOffset = _BlueNoise.SampleLevel(sampler_BlueNoise, squareUV(i.uv *3), 0);
+                float randomOffset = SAMPLE_TEXTURE2D_LOD(_BlueNoise, sampler_BlueNoise, squareUV(input.uv *3), 0);
+                
                 randomOffset *= _rayOffsetStrength;
 
                 float dstTravelled = randomOffset;
@@ -186,7 +193,10 @@ Shader "Hidden/CloudShader"
                 float3 lightEnergy = 0;
 
                 // Phase function makes clouds brighter around sun
-                float cosAngle = dot(rayDir, _WorldSpaceLightPos0.xyz);
+                float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+                Light light = GetMainLight(shadowCoord);
+                float3 dirToLight = light.direction;
+                float cosAngle = dot(rayDir, dirToLight); 
                 float phaseVal = phase(cosAngle);
 
                 while (dstTravelled < dstLimit) {
@@ -209,7 +219,7 @@ Shader "Hidden/CloudShader"
                 float3 col0 = col * transmittance + cloudCol;
                 return float4(lerp(col, col0, smoothstep(_RenderDistance, _RenderDistance * 0.25f, dstToBox + dstInsideBox) * _alpha), 0);
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }

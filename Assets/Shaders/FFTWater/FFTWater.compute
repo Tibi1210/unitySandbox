@@ -183,8 +183,15 @@ float ShortWavesFade(float kMag, SpectrumParameters spectrum){
  */
 float JONSWAP_TMA(float frequency, SpectrumParameters spectrum){
     float sigma = (frequency <= spectrum.peakFrequency) ? 0.07 : 0.09;
+
+    //https://wikiwaves.org/Ocean-Wave_Spectra#JONSWAP_Spectrum
     float r = exp(-pow(frequency - spectrum.peakFrequency, 2) / 
                   (2.0 * pow(sigma, 2) * pow(spectrum.peakFrequency, 2)));
+
+    //https://apps.dtic.mil/sti/pdfs/ADA157975.pdf
+    //float r = exp(-pow(frequency / (1 - spectrum.peakFrequency), 2) / 
+    //                    (2.0 * pow(sigma, 2), 2));
+    
     
     float frqRcp = rcp(frequency);
     float peakFoverF = spectrum.peakFrequency / frequency;

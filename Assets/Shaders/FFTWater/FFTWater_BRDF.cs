@@ -259,13 +259,18 @@ public class FFTWater_BRDF : MonoBehaviour{
 
 
     float JonswapAlpha(float fetch, float windSpeed){
-        //return 0.076f * Mathf.Pow(gravity * fetch / (windSpeed * windSpeed), -0.22f);
+        //https://wikiwaves.org/Ocean-Wave_Spectra#JONSWAP_Spectrum
         return 0.076f * Mathf.Pow(windSpeed * windSpeed / (fetch * gravity), 0.22f);
+
+        //https://apps.dtic.mil/sti/pdfs/ADA157975.pdf
+        //return 0.076f * Mathf.Pow(gravity * fetch / (windSpeed * windSpeed), -0.22f);
     }
 
     float JonswapPeakFrequency(float fetch, float windSpeed){
+        //https://apps.dtic.mil/sti/pdfs/ADA157975.pdf
         //return 3.5f * (gravity / windSpeed) * Mathf.Pow(gravity * fetch / (windSpeed * windSpeed), -0.33f);
-        //return 3.5f * Mathf.Pow(gravity * gravity * fetch / (windSpeed * windSpeed * windSpeed), -0.33f);
+        
+        //https://wikiwaves.org/Ocean-Wave_Spectra#JONSWAP_Spectrum
         return 22 * Mathf.Pow(gravity * gravity / (windSpeed * fetch), 0.33f);
     }
 

@@ -53,7 +53,7 @@ Shader "_Tibi/Lighting/FlatShading"{
 				float3 ambient = SampleSHVertex(normalWS);
 				Light mainLight = GetMainLight();
 				float3 diffuse = mainLight.color * max(0, dot(normalWS, mainLight.direction));
-				o.flatLighting = float4(ambient + diffuse, 1.0f);
+				o.flatLighting = float4(ambient + diffuse, 1.0);
 
 				return o;
 			}
