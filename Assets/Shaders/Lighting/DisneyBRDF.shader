@@ -51,8 +51,8 @@ Shader "_Tibi/Lighting/DisneyBRDF"{
 				float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD1;
                 float2 uv : TEXCOORD0;
-                float3 normal: TEXCOORD2;
-                float4 tangent: TEXCOORD3;
+                float3 normal: NORMAL;
+                float4 tangent: TANGENT;
 			};
 
 			 
@@ -64,7 +64,6 @@ Shader "_Tibi/Lighting/DisneyBRDF"{
             SAMPLER(sampler_TangentTex);
 
 			CBUFFER_START(UnityPerMaterial)
-				float4 _AlbedoTex_ST, _NormalTex_ST, _TangentTex_ST;
 				float3 _BaseColor;
 				float _NormalStrength, _Roughness, _Metallic, _Subsurface, _Specular, _SpecularTint, _Anisotropic, _Sheen, _SheenTint, _ClearCoat, _ClearCoatGloss;
 			CBUFFER_END
@@ -72,7 +71,7 @@ Shader "_Tibi/Lighting/DisneyBRDF"{
 			v2f vert (VertexData input){
 				v2f output;
 				output.uv = input.uv;
-				VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
+				VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 				output.positionWS = vertexInput.positionWS;
 				output.positionCS = mul(UNITY_MATRIX_VP, float4(vertexInput.positionWS, 1.0));
 				VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS);

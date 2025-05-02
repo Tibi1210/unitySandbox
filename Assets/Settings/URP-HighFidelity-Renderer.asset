@@ -53,8 +53,9 @@ MonoBehaviour:
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
   - {fileID: -1878332245247344467}
-  - {fileID: 533795970119725950}
-  m_RendererFeatureMap: adc0de57c6d2eee57e73854d9b6c6807
+  - {fileID: 98492296826750795}
+  - {fileID: 1196957585093501878}
+  m_RendererFeatureMap: adc0de57c6d2eee54b8778dd38ea5d01b623b5f694729c10
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -97,7 +98,7 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &533795970119725950
+--- !u!114 &98492296826750795
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -106,38 +107,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 164c21c38d70a7540a80003d3296557b, type: 3}
-  m_Name: Volumetric Clouds
+  m_Script: {fileID: 11500000, guid: 4ffaa77e92a77fc40b481b9b2b182a1d, type: 3}
+  m_Name: MyFog
   m_EditorClassIdentifier: 
-  m_Active: 0
-  settings:
-    material: {fileID: 2100000, guid: 4b901cda613223e4e80bf8d2f422c578, type: 2}
-    renderPassEvent: 400
-    color: {r: 1, g: 1, b: 1, a: 1}
-    alpha: 1
-    BoundsMin: {x: -1000, y: 200, z: -1000}
-    BoundsMax: {x: 1000, y: 250, z: 1000}
-    RenderDistance: 5000
-  cloudSettings:
-    Steps: 15
-    LightSteps: 15
-    CloudNoiseTexure: {fileID: 2800000, guid: 6c4e6f2a87a962f47930ab0fd7bba76e, type: 3}
-    CloudScale: 0.5
-    CloudSmooth: 10
-    Wind: {x: 0.1, y: 0, z: 0}
-    LightAbsorptionThroughCloud: 0.15
-    PhaseParams: {x: 0.1, y: 0.25, z: 0.5, w: 0}
-    ContainerEdgeFadeDst: 45
-    DensityThreshold: 0.25
-    DensityMultiplier: 10
-    LightAbsorptionTowardSun: 0.25
-    DarknessThreshold: 0.1
-  detailCloudSettings:
-    detailCloudWeight: 0.24
-    DetailCloudNoiseTexure: {fileID: 11700000, guid: f0056a97f657fef4faceb6f7e3243f0d,
-      type: 2}
-    DetailCloudScale: 1
-    DetailCloudWind: {x: 0.1, y: 0, z: 0}
-  blueNoiseSettings:
-    BlueNoiseTexure: {fileID: 2800000, guid: 93e5af1c8101a284e88823deeb5fcbb0, type: 3}
-    RayOffsetStrength: 50
+  m_Active: 1
+--- !u!114 &1196957585093501878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e20345995bdfc64a88d368fe6cda0a0, type: 3}
+  m_Name: MyClouds
+  m_EditorClassIdentifier: 
+  m_Active: 1

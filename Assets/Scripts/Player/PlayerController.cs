@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Player speed")]
     public float moveSpeed = 2f;
     public float lookSpeed = 60f;
-    public float jumpPower = 8f;
+    [Range(0, 8)]public float jumpPower = 8f;
     public float gravity = 9.81f;
 
 

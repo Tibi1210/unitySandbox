@@ -108,7 +108,7 @@ public class TerrainScript : MonoBehaviour {
         
         for (int i = 0, x = 0; x <= sideVertCount; ++x) {
             for (int z = 0; z <= sideVertCount; ++z, ++i) {
-                vertices[i] = new Vector3(((float)x / sideVertCount * planeSize) - halfLength, 0, 
+                vertices[i] = new Vector3(((float)x / sideVertCount * planeSize) - halfLength, heightMap[z*resN+x]*100, 
                                           ((float)z / sideVertCount * planeSize) - halfLength);
                 uv[i] = new Vector2((float)x / sideVertCount, (float)z / sideVertCount);
                 tangents[i] = tangent;
@@ -141,7 +141,7 @@ public class TerrainScript : MonoBehaviour {
         Cmesh = new Mesh();
         Cmesh.name = "CollisionPlane";
 
-        heightBuffer.GetData(heightMap);
+        //heightBuffer.GetData(heightMap);
 
         vertices = new Vector3[vert_num * vert_num];
         Vector2[] uv = new Vector2[vertices.Length];
@@ -205,6 +205,9 @@ public class TerrainScript : MonoBehaviour {
         computeShader.SetInt("_N", resN);
         computeShader.SetFloat("_BaseFrequency", baseFrequency);
         computeShader.Dispatch(FractalNoiseCS, GRID_DIM, GRID_DIM, 1);
+
+        heightBuffer.GetData(heightMap);
+
         CreatePlaneMesh();
         CreateCollisionPlane();
         CreateMaterial();

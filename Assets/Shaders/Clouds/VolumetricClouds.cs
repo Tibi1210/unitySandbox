@@ -1,4 +1,3 @@
-//Created by Paro.
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine;

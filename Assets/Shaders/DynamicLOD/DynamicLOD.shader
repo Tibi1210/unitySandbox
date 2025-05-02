@@ -191,6 +191,9 @@ Shader "_Tibi/DynamicLOD"{
 
             ENDHLSL
         }
+
+
+        UsePass "Universal Render Pipeline/Lit/DepthNormals"
     }
         Fallback Off
 }
